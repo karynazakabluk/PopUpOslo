@@ -1,10 +1,6 @@
-namespace PopUpOslo.Domain.Enums;
+namespace DefaultNamespace;
 
-public enum EventCategory
+public class EventCategory
 {
-    Food,
-    Networking,
-    Education,
-    Culture,
-    Other
+    
 }
