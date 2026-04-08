@@ -1,10 +1,8 @@
 namespace PopUpOslo.Domain.Enums;
 
-public enum EventCategory
+public enum EventStatus
 {
-    Food,
-    Networking,
-    Education,
-    Culture,
-    Other
+    Upcoming,
+    Completed,
+    Cancelled
 }

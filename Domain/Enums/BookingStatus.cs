@@ -1,8 +1,8 @@
 namespace PopUpOslo.Domain.Enums;
 
-public enum EventStatus
+public enum BookingStatus
 {
-    Upcoming,
-    Completed,
-    Cancelled
+    Booked,
+    Cancelled,
+    Completed
 }
