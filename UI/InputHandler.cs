@@ -14,7 +14,7 @@ public static class InputHandler
                 return result;
             }
 
-            Console.WriteLine("Invalid number. Please enter a valid integer.");
+            Console.WriteLine("Invalid number. Please enter a valid integer");
             Console.WriteLine();
         }
     }
@@ -31,7 +31,7 @@ public static class InputHandler
                 return result;
             }
 
-            Console.WriteLine("Invalid number. Please enter a valid numeric value.");
+            Console.WriteLine("Invalid number. Please enter a valid numeric value");
             Console.WriteLine();
         }
     }
@@ -48,7 +48,24 @@ public static class InputHandler
                 return input.Trim();
             }
 
-            Console.WriteLine("This field cannot be empty.");
+            Console.WriteLine("This field cannot be empty");
+            Console.WriteLine();
+        }
+    }
+
+    public static string ReadPassword(string prompt)
+    {
+        while (true)
+        {
+            Console.Write(prompt);
+            string? input = Console.ReadLine();
+
+            if (!string.IsNullOrWhiteSpace(input))
+            {
+                return input.Trim();
+            }
+
+            Console.WriteLine("Password cannot be empty");
             Console.WriteLine();
         }
     }
@@ -87,7 +104,7 @@ public static class InputHandler
                 return false;
             }
 
-            Console.WriteLine("Please enter 'y' or 'n'.");
+            Console.WriteLine("Please enter 'y' or 'n' ");
             Console.WriteLine();
         }
     }
