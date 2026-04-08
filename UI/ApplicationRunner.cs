@@ -1,3 +1,6 @@
+using PopUpOslo.Domain.Entities;
+using PopUpOslo.Domain.Enums;
+
 namespace PopUpOslo.UI;
 
 public class ApplicationRunner
@@ -5,6 +8,9 @@ public class ApplicationRunner
     private bool _isRunning = true;
     private bool _isLoggedIn = false;
     private string _currentUsername = "Guest";
+
+    private readonly List<Event> _events = new();
+    private int _nextEventId = 1;
 
     public void Run()
     {
@@ -48,7 +54,7 @@ public class ApplicationRunner
                 break;
 
             default:
-                Menu.ShowError("Invalid option. Please try again");
+                Menu.ShowError("Invalid option. Please try again.");
                 Menu.Pause();
                 break;
         }
@@ -92,7 +98,7 @@ public class ApplicationRunner
                 break;
 
             default:
-                Menu.ShowError("Invalid option. Please try again");
+                Menu.ShowError("Invalid option. Please try again.");
                 Menu.Pause();
                 break;
         }
@@ -105,8 +111,7 @@ public class ApplicationRunner
         string username = InputHandler.ReadRequiredString("Enter username: ");
         string password = InputHandler.ReadPassword("Enter password: ");
 
-        // TODO: connect AuthService and database later
-        Menu.ShowSuccess($"Account for '{username}' created successfully (temporary flow)");
+        Menu.ShowSuccess($"Account for '{username}' created successfully (temporary flow).");
         Menu.Pause();
     }
 
@@ -117,7 +122,6 @@ public class ApplicationRunner
         string username = InputHandler.ReadRequiredString("Enter username: ");
         string password = InputHandler.ReadPassword("Enter password: ");
 
-        // TODO: validate through AuthService later
         _isLoggedIn = true;
         _currentUsername = username;
 
@@ -129,8 +133,51 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("Browse Events");
 
-        // TODO: connect EventService later
-        Menu.ShowMessage("No events available yet");
+        if (_events.Count == 0)
+        {
+            Menu.ShowMessage("No events available.");
+            Menu.Pause();
+            return;
+        }
+
+        Console.WriteLine("Available Events");
+        Console.WriteLine("----------------------------------------");
+
+        foreach (var ev in _events)
+        {
+            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Venue} | {ev.DateTime:g}");
+        }
+
+        Console.WriteLine();
+
+        bool viewDetails = InputHandler.Confirm("Do you want to view event details");
+
+        if (!viewDetails)
+        {
+            Menu.Pause();
+            return;
+        }
+
+        int eventId = InputHandler.ReadInt("Enter event id: ");
+        Event? selected = _events.FirstOrDefault(e => e.EventId == eventId);
+
+        if (selected == null)
+        {
+            Menu.ShowError("Event not found.");
+            Menu.Pause();
+            return;
+        }
+
+        Menu.ShowSectionTitle("Event Details");
+        Console.WriteLine($"Title: {selected.Title}");
+        Console.WriteLine($"Description: {selected.Description}");
+        Console.WriteLine($"Venue: {selected.Venue}");
+        Console.WriteLine($"Date: {selected.DateTime:g}");
+        Console.WriteLine($"Category: {selected.Category}");
+        Console.WriteLine($"Type: {selected.Type}");
+        Console.WriteLine($"Status: {selected.Status}");
+        Console.WriteLine();
+
         Menu.Pause();
     }
 
@@ -138,8 +185,53 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("Create Event");
 
-        // TODO: connect EventService later
-        Menu.ShowMessage("Create Event feature will be implemented later");
+        string title = InputHandler.ReadRequiredString("Enter title: ");
+        string description = InputHandler.ReadRequiredString("Enter description: ");
+        string venue = InputHandler.ReadRequiredString("Enter venue: ");
+        DateTime dateTime = InputHandler.ReadDateTime("Enter date and time (e.g. 2026-05-10 18:30): ");
+
+        Console.WriteLine();
+        Console.WriteLine("Choose category:");
+        Console.WriteLine("1. Food");
+        Console.WriteLine("2. Networking");
+        Console.WriteLine("3. Education");
+        Console.WriteLine("4. Culture");
+        Console.WriteLine("5. Other");
+        int categoryChoice = InputHandler.ReadIntInRange("Choose category (1-5): ", 1, 5);
+
+        Console.WriteLine();
+        Console.WriteLine("Choose event type:");
+        Console.WriteLine("1. Workshop");
+        Console.WriteLine("2. Dining");
+        int typeChoice = InputHandler.ReadIntInRange("Choose type (1-2): ", 1, 2);
+
+        EventCategory category = categoryChoice switch
+        {
+            1 => EventCategory.Food,
+            2 => EventCategory.Networking,
+            3 => EventCategory.Education,
+            4 => EventCategory.Culture,
+            _ => EventCategory.Other
+        };
+
+        EventType type = typeChoice == 1 ? EventType.Workshop : EventType.Dining;
+
+        var ev = new Event
+        {
+            EventId = _nextEventId++,
+            Title = title,
+            Description = description,
+            Venue = venue,
+            DateTime = dateTime,
+            Category = category,
+            Type = type,
+            OrganizerId = 1,
+            Status = EventStatus.Upcoming
+        };
+
+        _events.Add(ev);
+
+        Menu.ShowSuccess("Event created successfully.");
         Menu.Pause();
     }
 
@@ -147,8 +239,21 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("My Events");
 
-        // TODO: connect EventService later
-        Menu.ShowMessage("You have not created any events yet");
+        var myEvents = _events.Where(e => e.OrganizerId == 1).ToList();
+
+        if (myEvents.Count == 0)
+        {
+            Menu.ShowMessage("You have not created any events yet.");
+            Menu.Pause();
+            return;
+        }
+
+        foreach (var ev in myEvents)
+        {
+            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Venue} | {ev.DateTime:g}");
+        }
+
+        Console.WriteLine();
         Menu.Pause();
     }
 
@@ -156,8 +261,31 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("Book Event");
 
-        // TODO: connect BookingService later
-        Menu.ShowMessage("Book Event feature will be implemented later");
+        if (_events.Count == 0)
+        {
+            Menu.ShowMessage("No events available to book.");
+            Menu.Pause();
+            return;
+        }
+
+        foreach (var ev in _events)
+        {
+            Console.WriteLine($"{ev.EventId}. {ev.Title}");
+        }
+
+        Console.WriteLine();
+
+        int eventId = InputHandler.ReadInt("Enter event id: ");
+        Event? selected = _events.FirstOrDefault(e => e.EventId == eventId);
+
+        if (selected == null)
+        {
+            Menu.ShowError("Event not found.");
+            Menu.Pause();
+            return;
+        }
+
+        Menu.ShowSuccess($"Booked: {selected.Title}");
         Menu.Pause();
     }
 
@@ -165,22 +293,33 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("My Bookings");
 
-        // TODO: connect BookingService later
-        Menu.ShowMessage("You do not have any bookings yet");
+        Menu.ShowMessage("Booking list will be connected later. Temporary flow only.");
         Menu.Pause();
     }
 
     private void HandleLeaveReview()
-    {Menu.ShowSectionTitle("Leave Review");
+    {
+        Menu.ShowSectionTitle("Leave Review");
 
-        // TODO: connect ReviewService later
-        Menu.ShowMessage("Leave Review feature will be implemented later.");
+        int eventId = InputHandler.ReadInt("Enter event id: ");
+        int rating = InputHandler.ReadIntInRange("Enter rating (1-5): ", 1, 5);
+        string comment = InputHandler.ReadRequiredString("Enter comment: ");
+
+        Console.WriteLine();
+        Console.WriteLine("Review Summary");
+        Console.WriteLine("----------------------------------------");
+        Console.WriteLine($"Event ID: {eventId}");
+        Console.WriteLine($"Rating: {rating}");
+        Console.WriteLine($"Comment: {comment}");
+        Console.WriteLine();
+
+        Menu.ShowSuccess("Review submitted successfully.");
         Menu.Pause();
     }
 
     private void HandleLogout()
     {
-        bool confirmLogout = InputHandler.Confirm("Are you sure you want to log out?");
+        bool confirmLogout = InputHandler.Confirm("Are you sure you want to log out");
 
         if (!confirmLogout)
         {
@@ -196,7 +335,7 @@ public class ApplicationRunner
 
     private void HandleExit()
     {
-        bool confirmExit = InputHandler.Confirm("Are you sure you want to exit?");
+        bool confirmExit = InputHandler.Confirm("Are you sure you want to exit");
 
         if (confirmExit)
         {
