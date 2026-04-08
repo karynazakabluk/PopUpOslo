@@ -1,8 +1,11 @@
 namespace PopUpOslo.Domain.Entities;
 
-public class User
+public class BookingOption
 {
-    public int UserId { get; set; }
-    public string Username { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
+    public int OptionId { get; set; }
+    public int EventId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public double Price { get; set; }
+    public int Capacity { get; set; }
+    public int RemainingCapacity { get; set; }
 }

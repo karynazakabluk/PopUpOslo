@@ -1,14 +1,11 @@
-using PopUpOslo.Domain.Enums;
-
 namespace PopUpOslo.Domain.Entities;
 
-public class Booking
+public class Review
 {
-    public int BookingId { get; set; }
+    public int ReviewId { get; set; }
     public int UserId { get; set; }
     public int EventId { get; set; }
-    public int OptionId { get; set; }
-    public decimal PriceAtBooking { get; set; }
-    public DateTime BookedAt { get; set; }
-    public BookingStatus Status { get; set; } = BookingStatus.Confirmed;
+    public int Rating { get; set; }
+    public string Comment { get; set; } = string.Empty;
+    public string CreatedAt { get; set; } = string.Empty;
 }

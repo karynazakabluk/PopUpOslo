@@ -8,7 +8,7 @@ public class Booking
     public int UserId { get; set; }
     public int EventId { get; set; }
     public int OptionId { get; set; }
-    public decimal PriceAtBooking { get; set; }
-    public DateTime BookedAt { get; set; }
-    public BookingStatus Status { get; set; } = BookingStatus.Confirmed;
+    public double PriceAtBooking { get; set; }
+    public BookingStatus Status { get; set; } = BookingStatus.Booked;
+    public string BookingDate { get; set; } = string.Empty;
 }
