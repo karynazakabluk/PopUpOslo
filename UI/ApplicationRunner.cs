@@ -10,21 +10,21 @@ public class ApplicationRunner
     {
         while (_isRunning)
         {
-            if (!_isLoggedIn)
+            if (_isLoggedIn)
             {
-                RunMainMenu();
+                RunUserMenu();
             }
             else
             {
-                RunUserMenu();
+                RunGuestMenu();
             }
         }
     }
 
-    private void RunMainMenu()
+    private void RunGuestMenu()
     {
         Menu.ShowWelcome();
-        Menu.ShowMainMenu();
+        Menu.ShowGuestMenu();
 
         int choice = InputHandler.ReadInt("Choose an option: ");
         Console.WriteLine();
@@ -64,31 +64,23 @@ public class ApplicationRunner
         switch (choice)
         {
             case 1:
-                HandleCreateEvent();
-                break;
-
-            case 2:
-                HandleViewMyEvents();
-                break;
-
-            case 3:
                 HandleBrowseEvents();
                 break;
 
-            case 4:
-                HandleBookEvent();
-                break;
-
-            case 5:
+            case 2:
                 HandleMyBookings();
                 break;
 
-            case 6:
-                HandleLeaveReview();
+            case 3:
+                HandleMyProfile();
+                break;
+
+            case 4:
+                HandleLogout();
                 break;
 
             case 0:
-                HandleLogout();
+                HandleExit();
                 break;
 
             default:
@@ -103,10 +95,10 @@ public class ApplicationRunner
         Menu.ShowSectionTitle("Register");
 
         string username = InputHandler.ReadRequiredString("Enter username: ");
-        string password = InputHandler.ReadRequiredString("Enter password: ");
+        string password = InputHandler.ReadPassword("Enter password: ");
 
-        // TODO: connect AuthService later
-        Menu.ShowSuccess($"User '{username}' registered successfully (temporary demo).");
+        // TODO: connect AuthService and database later
+        Menu.ShowSuccess($"Account for '{username}' created successfully (temporary flow).");
         Menu.Pause();
     }
 
@@ -115,9 +107,9 @@ public class ApplicationRunner
         Menu.ShowSectionTitle("Login");
 
         string username = InputHandler.ReadRequiredString("Enter username: ");
-        string password = InputHandler.ReadRequiredString("Enter password: ");
+        string password = InputHandler.ReadPassword("Enter password: ");
 
-        // TODO: connect AuthService later
+        // TODO: validate through AuthService later
         _isLoggedIn = true;
         _currentUsername = username;
 
@@ -134,53 +126,33 @@ public class ApplicationRunner
         Menu.Pause();
     }
 
-    private void HandleCreateEvent()
-    {
-        Menu.ShowSectionTitle("Create Event");
-
-        // TODO: connect EventService later
-        Menu.ShowMessage("Create Event feature will be implemented later.");
-        Menu.Pause();
-    }
-
-    private void HandleViewMyEvents()
-    {
-        Menu.ShowSectionTitle("My Events");
-
-        // TODO: connect EventService later
-        Menu.ShowMessage("You have not created any events yet.");
-        Menu.Pause();
-    }
-
-    private void HandleBookEvent()
-    {
-        Menu.ShowSectionTitle("Book Event");
-
-        // TODO: connect BookingService later
-        Menu.ShowMessage("Book Event feature will be implemented later.");
-        Menu.Pause();
-    }
-
     private void HandleMyBookings()
     {
         Menu.ShowSectionTitle("My Bookings");
 
         // TODO: connect BookingService later
-        Menu.ShowMessage("No bookings found.");
+        Menu.ShowMessage("You do not have any bookings yet.");
         Menu.Pause();
     }
 
-    private void HandleLeaveReview()
+    private void HandleMyProfile()
     {
-        Menu.ShowSectionTitle("Leave Review");
+        Menu.ShowSectionTitle("My Profile");
 
-        // TODO: connect ReviewService later
-        Menu.ShowMessage("Leave Review feature will be implemented later.");
+        Menu.ShowMessage($"Username: {_currentUsername}");
+        Menu.ShowMessage("Profile details will be expanded later.");
         Menu.Pause();
     }
 
     private void HandleLogout()
     {
+        bool confirmLogout = InputHandler.Confirm("Are you sure you want to log out?");
+
+        if (!confirmLogout)
+        {
+            return;
+        }
+
         _isLoggedIn = false;
         _currentUsername = "Guest";
 
