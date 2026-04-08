@@ -12,6 +12,48 @@ public class ApplicationRunner
     private readonly List<Event> _events = new();
     private int _nextEventId = 1;
 
+    public ApplicationRunner()
+    {
+        _events.Add(new Event
+        {
+            EventId = _nextEventId++,
+            Title = "Oslo Coffee Tasting",
+            Description = "A guided tasting of speciality coffee.",
+            Venue = "Vulkan",
+            DateTime = new DateTime(2026, 5, 12, 18, 0, 0),
+            Category = EventCategory.Food,
+            Type = EventType.Dining,
+            OrganizerId = 99,
+            Status = EventStatus.Upcoming
+        });
+
+        _events.Add(new Event
+        {
+            EventId = _nextEventId++,
+            Title = "Beginner Pottery Workshop",
+            Description = "Introductory pottery workshop for beginners.",
+            Venue = "Grünerløkka",
+            DateTime = new DateTime(2026, 5, 15, 17, 30, 0),
+            Category = EventCategory.Education,
+            Type = EventType.Workshop,
+            OrganizerId = 98,
+            Status = EventStatus.Upcoming
+        });
+
+        _events.Add(new Event
+        {
+            EventId = _nextEventId++,
+            Title = "Pop-up Sushi Night",
+            Description = "A themed sushi dining experience.",
+            Venue = "Tøyen",
+            DateTime = new DateTime(2026, 5, 20, 19, 0, 0),
+            Category = EventCategory.Culture,
+            Type = EventType.Dining,
+            OrganizerId = 97,
+            Status = EventStatus.Upcoming
+        });
+    }
+
     public void Run()
     {
         while (_isRunning)
@@ -140,12 +182,106 @@ public class ApplicationRunner
             return;
         }
 
-        Console.WriteLine("Available Events");
+        Console.WriteLine("Browse Options");
+        Console.WriteLine("----------------------------------------");
+        Console.WriteLine("1. View all events");
+        Console.WriteLine("2. Search by keyword");
+        Console.WriteLine("3. Filter by category");
+        Console.WriteLine("4. Filter by type");
+        Console.WriteLine("0. Back");
+        Console.WriteLine();
+
+        int choice = InputHandler.ReadInt("Choose an option: ");
+        Console.WriteLine();
+
+        List<Event> results = new();
+
+        switch (choice)
+        {
+            case 1:
+                results = _events
+                    .OrderBy(e => e.DateTime)
+                    .ToList();
+                break;
+
+            case 2:
+                string keyword = InputHandler.ReadRequiredString("Enter keyword: ").ToLower();
+
+                results = _events
+                    .Where(e =>
+                        e.Title.ToLower().Contains(keyword) ||
+                        e.Description.ToLower().Contains(keyword) ||
+                        e.Venue.ToLower().Contains(keyword))
+                    .OrderBy(e => e.DateTime)
+                    .ToList();
+                break;
+
+            case 3:
+                Console.WriteLine("Categories");
+                Console.WriteLine("1. Food");
+                Console.WriteLine("2. Networking");
+                Console.WriteLine("3. Education");
+                Console.WriteLine("4. Culture");
+                Console.WriteLine("5. Other");
+                Console.WriteLine();
+
+                int categoryChoice = InputHandler.ReadIntInRange("Choose category (1-5): ", 1, 5);
+
+                EventCategory selectedCategory = categoryChoice switch
+                {
+                    1 => EventCategory.Food,
+                    2 => EventCategory.Networking,
+                    3 => EventCategory.Education,
+                    4 => EventCategory.Culture,
+                    _ => EventCategory.Other
+                };
+
+                results = _events
+                    .Where(e => e.Category == selectedCategory)
+                    .OrderBy(e => e.DateTime)
+                    .ToList();
+                break;
+
+            case 4:
+                Console.WriteLine("Types");
+                Console.WriteLine("1. Workshop");
+                Console.WriteLine("2. Dining");
+                Console.WriteLine();
+
+                int typeChoice = InputHandler.ReadIntInRange("Choose type (1-2): ", 1, 2);
+
+                EventType selectedType = typeChoice == 1
+                    ? EventType.Workshop
+                    : EventType.Dining;
+
+                results = _events
+                    .Where(e => e.Type == selectedType)
+                    .OrderBy(e => e.DateTime)
+                    .ToList();
+                break;
+
+            case 0:
+                return;
+
+            default:
+                Menu.ShowError("Invalid option.");
+                Menu.Pause();
+                return;
+        }
+
+        Console.WriteLine("Results");
         Console.WriteLine("----------------------------------------");
 
-        foreach (var ev in _events)
+        if (results.Count == 0)
         {
-            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Venue} | {ev.DateTime:g}");
+            Menu.ShowMessage("No matching events found.");
+            Menu.Pause();
+            return;
+        }
+
+        foreach (var ev in results)
+        {
+            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.Venue} | {ev.DateTime:g}");
         }
 
         Console.WriteLine();
@@ -153,8 +289,7 @@ public class ApplicationRunner
         bool viewDetails = InputHandler.Confirm("Do you want to view event details");
 
         if (!viewDetails)
-        {
-            Menu.Pause();
+        {Menu.Pause();
             return;
         }
 
@@ -239,7 +374,10 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("My Events");
 
-        var myEvents = _events.Where(e => e.OrganizerId == 1).ToList();
+        var myEvents = _events
+            .Where(e => e.OrganizerId == 1)
+            .OrderBy(e => e.DateTime)
+            .ToList();
 
         if (myEvents.Count == 0)
         {
@@ -250,7 +388,7 @@ public class ApplicationRunner
 
         foreach (var ev in myEvents)
         {
-            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Venue} | {ev.DateTime:g}");
+            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.DateTime:g}");
         }
 
         Console.WriteLine();
@@ -286,14 +424,17 @@ public class ApplicationRunner
         }
 
         Menu.ShowSuccess($"Booked: {selected.Title}");
-        Menu.Pause();
-    }
+        Menu.Pause();}
 
     private void HandleMyBookings()
     {
         Menu.ShowSectionTitle("My Bookings");
 
-        Menu.ShowMessage("Booking list will be connected later. Temporary flow only.");
+        Menu.ShowMessage("Temporary booking list:");
+        Console.WriteLine("1. Oslo Coffee Tasting | Confirmed");
+        Console.WriteLine("2. Pop-up Sushi Night | Confirmed");
+        Console.WriteLine();
+
         Menu.Pause();
     }
 
