@@ -1,6 +1,18 @@
-namespace DefaultNamespace;
+using PopUpOslo.Domain.Enums;
 
-public class DiningEvent
+namespace PopUpOslo.Domain.Entities;
+
+public class DiningEvent : Event
 {
-    
+    public string CuisineType { get; set; } = string.Empty;
+
+    public DiningEvent()
+    {
+        Type = EventType.Dining;
+    }
+
+    public override string GetExtraInfo()
+    {
+        return $"Cuisine type: {CuisineType}";
+    }
 }

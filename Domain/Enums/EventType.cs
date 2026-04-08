@@ -1,6 +1,7 @@
-namespace DefaultNamespace;
+namespace PopUpOslo.Domain.Enums;
 
-public class EventType
+public enum EventType
 {
-    
+    Workshop,
+    Dining
 }
