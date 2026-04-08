@@ -14,7 +14,23 @@ public static class InputHandler
                 return result;
             }
 
-            Console.WriteLine("Invalid number. Please enter a valid integer");
+            Console.WriteLine("Invalid number. Please enter a valid integer.");
+            Console.WriteLine();
+        }
+    }
+
+    public static int ReadIntInRange(string prompt, int min, int max)
+    {
+        while (true)
+        {
+            int value = ReadInt(prompt);
+
+            if (value >= min && value <= max)
+            {
+                return value;
+            }
+
+            Console.WriteLine($"Please enter a number between {min} and {max}.");
             Console.WriteLine();
         }
     }
@@ -31,7 +47,7 @@ public static class InputHandler
                 return result;
             }
 
-            Console.WriteLine("Invalid number. Please enter a valid numeric value");
+            Console.WriteLine("Invalid number. Please enter a valid numeric value.");
             Console.WriteLine();
         }
     }
@@ -48,7 +64,7 @@ public static class InputHandler
                 return input.Trim();
             }
 
-            Console.WriteLine("This field cannot be empty");
+            Console.WriteLine("This field cannot be empty.");
             Console.WriteLine();
         }
     }
@@ -65,7 +81,7 @@ public static class InputHandler
                 return input.Trim();
             }
 
-            Console.WriteLine("Password cannot be empty");
+            Console.WriteLine("Password cannot be empty.");
             Console.WriteLine();
         }
     }
@@ -104,7 +120,7 @@ public static class InputHandler
                 return false;
             }
 
-            Console.WriteLine("Please enter 'y' or 'n' ");
+            Console.WriteLine("Please enter 'y' or 'n'.");
             Console.WriteLine();
         }
     }
