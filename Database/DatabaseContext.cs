@@ -1,6 +1,6 @@
-﻿using System.Data.SQLite;
+using System.Data.SQLite;
 
-public static class Database
+public static class DatabaseContext
 {
     private static string connectionString = "Data Source=Database/database.db";
 

@@ -1,13 +1,12 @@
 using System.Data.SQLite;
 using System.Collections.Generic;
 
-public class BookingOptionRepository
+public class BookingOptionRepository : BaseRepository
 {
-    // ➕ Add booking option (VIP, Standard, etc.)
+    //  Add booking option
     public void AddOption(BookingOption option)
     {
-        using var conn = Database.GetConnection();
-        conn.Open();
+        using var conn = GetOpenConnection(); 
 
         var cmd = conn.CreateCommand();
         cmd.CommandText = @"INSERT INTO BookingOptions 
@@ -23,13 +22,12 @@ public class BookingOptionRepository
         cmd.ExecuteNonQuery();
     }
 
-    // 📋 Get all options for an event
+    //  Get all options for an event
     public List<BookingOption> GetOptionsByEvent(int eventId)
     {
         var list = new List<BookingOption>();
 
-        using var conn = Database.GetConnection();
-        conn.Open();
+        using var conn = GetOpenConnection(); //  no repetition
 
         var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT * FROM BookingOptions WHERE EventId=@id";
@@ -53,11 +51,10 @@ public class BookingOptionRepository
         return list;
     }
 
-    // 🔍 Get single option
+    //  Get single option
     public BookingOption GetOptionById(int optionId)
     {
-        using var conn = Database.GetConnection();
-        conn.Open();
+        using var conn = GetOpenConnection();
 
         var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT * FROM BookingOptions WHERE OptionId=@id";
@@ -81,11 +78,10 @@ public class BookingOptionRepository
         return null;
     }
 
-    // ➖ Reduce capacity when booking
+    // Reduce capacity
     public void ReduceCapacity(int optionId)
     {
-        using var conn = Database.GetConnection();
-        conn.Open();
+        using var conn = GetOpenConnection();
 
         var cmd = conn.CreateCommand();
         cmd.CommandText = @"UPDATE BookingOptions 
@@ -93,15 +89,13 @@ public class BookingOptionRepository
                             WHERE OptionId = @id AND RemainingCapacity > 0";
 
         cmd.Parameters.AddWithValue("@id", optionId);
-
         cmd.ExecuteNonQuery();
     }
 
-    // ➕ Restore capacity when cancelling booking
+    // Increase capacity
     public void IncreaseCapacity(int optionId)
     {
-        using var conn = Database.GetConnection();
-        conn.Open();
+        using var conn = GetOpenConnection();
 
         var cmd = conn.CreateCommand();
         cmd.CommandText = @"UPDATE BookingOptions 
@@ -109,7 +103,6 @@ public class BookingOptionRepository
                             WHERE OptionId = @id";
 
         cmd.Parameters.AddWithValue("@id", optionId);
-
         cmd.ExecuteNonQuery();
     }
 }

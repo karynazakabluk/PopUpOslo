@@ -1,28 +1,29 @@
 using System.Data.SQLite;
 
-public class UserRepository
+public class UserRepository : BaseRepository
 {
+    //  Register User
     public void AddUser(User user)
     {
-        using var conn = Database.GetConnection();
-        conn.Open();
+        using var conn = GetOpenConnection();
 
         var cmd = conn.CreateCommand();
-        cmd.CommandText = "INSERT INTO Users (Username, Password, Role) VALUES (@u, @p, @r)";
+        cmd.CommandText = @"INSERT INTO Users (Username, PasswordHash)
+                            VALUES (@u, @p)";
+
         cmd.Parameters.AddWithValue("@u", user.Username);
-        cmd.Parameters.AddWithValue("@p", user.Password);
-        cmd.Parameters.AddWithValue("@r", user.Role);
+        cmd.Parameters.AddWithValue("@p", user.PasswordHash);
 
         cmd.ExecuteNonQuery();
     }
 
+    //  Get user by username (for login)
     public User GetUserByUsername(string username)
     {
-        using var conn = Database.GetConnection();
-        conn.Open();
+        using var conn = GetOpenConnection();
 
         var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT * FROM Users WHERE Username = @u";
+        cmd.CommandText = "SELECT * FROM Users WHERE Username=@u";
         cmd.Parameters.AddWithValue("@u", username);
 
         using var reader = cmd.ExecuteReader();
@@ -33,22 +34,24 @@ public class UserRepository
             {
                 UserId = reader.GetInt32(0),
                 Username = reader.GetString(1),
-                Password = reader.GetString(2),
-                Role = reader.GetString(3)
+                PasswordHash = reader.GetString(2)
             };
         }
 
         return null;
     }
 
-    public User GetUserById(int id)
+    // Validate login
+    public User ValidateUser(string username, string passwordHash)
     {
-        using var conn = Database.GetConnection();
-        conn.Open();
+        using var conn = GetOpenConnection();
 
         var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT * FROM Users WHERE UserId = @id";
-        cmd.Parameters.AddWithValue("@id", id);
+        cmd.CommandText = @"SELECT * FROM Users 
+                            WHERE Username=@u AND PasswordHash=@p";
+
+        cmd.Parameters.AddWithValue("@u", username);
+        cmd.Parameters.AddWithValue("@p", passwordHash);
 
         using var reader = cmd.ExecuteReader();
 
@@ -58,11 +61,46 @@ public class UserRepository
             {
                 UserId = reader.GetInt32(0),
                 Username = reader.GetString(1),
-                Password = reader.GetString(2),
-                Role = reader.GetString(3)
+                PasswordHash = reader.GetString(2)
             };
         }
 
         return null;
+    }
+
+    //  Get user by ID
+    public User GetUserById(int userId)
+    {
+        using var conn = GetOpenConnection();
+
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "SELECT * FROM Users WHERE UserId=@id";
+        cmd.Parameters.AddWithValue("@id", userId);
+
+        using var reader = cmd.ExecuteReader();
+
+        if (reader.Read())
+        {
+            return new User
+            {
+                UserId = reader.GetInt32(0),
+                Username = reader.GetString(1),
+                PasswordHash = reader.GetString(2)
+            };
+        }
+
+        return null;
+    }
+
+    // Delete user
+    public void DeleteUser(int userId)
+    {
+        using var conn = GetOpenConnection();
+
+        var cmd = conn.CreateCommand();
+        cmd.CommandText = "DELETE FROM Users WHERE UserId=@id";
+        cmd.Parameters.AddWithValue("@id", userId);
+
+        cmd.ExecuteNonQuery();
     }
 }
