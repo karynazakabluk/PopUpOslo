@@ -1,18 +1,25 @@
 using PopUpOslo.Domain.Entities;
 using PopUpOslo.Domain.Enums;
+using PopUpOslo.Infrastructure.Repositories;
 
 namespace PopUpOslo.Services;
 
 public class BookingService
 {
-    private readonly List<Booking> _bookings = new();
-    private int _nextBookingId = 1;
+    private readonly BookingRepository _bookingRepository = new();
+    private readonly BookingOptionRepository _bookingOptionRepository = new();
 
-    public bool CreateBooking(int userId, Event ev)
+    public bool CreateBooking(int userId, Event selectedEvent)
     {
-        bool alreadyBooked = _bookings.Any(b =>
-            b.UserId == userId &&
-            b.EventId == ev.EventId &&
+        if (selectedEvent == null)
+        {
+            return false;
+        }
+
+        var existingBookings = _bookingRepository.GetBookingsByUser(userId);
+
+        bool alreadyBooked = existingBookings.Any(b =>
+            b.EventId == selectedEvent.EventId &&
             b.Status == BookingStatus.Booked);
 
         if (alreadyBooked)
@@ -20,47 +27,62 @@ public class BookingService
             return false;
         }
 
+        var options = _bookingOptionRepository.GetOptionsByEvent(selectedEvent.EventId);
+        var option = options.FirstOrDefault(o => o.RemainingCapacity > 0);
+
+        if (option == null)
+        {
+            return false;
+        }
+
         var booking = new Booking
         {
-            BookingId = _nextBookingId++,
             UserId = userId,
-            EventId = ev.EventId,
-            OptionId = 0,
-            PriceAtBooking = 0,
+            EventId = selectedEvent.EventId,
+            OptionId = option.OptionId,
+            PriceAtBooking = option.Price,
             Status = BookingStatus.Booked,
-            BookingDate = DateTime.Now.ToString("g")
+            BookingDate = DateTime.Now.ToString("s")
         };
 
-        _bookings.Add(booking);
+        _bookingRepository.AddBooking(booking);
+        _bookingOptionRepository.ReduceCapacity(option.OptionId);
+
         return true;
     }
 
     public List<Booking> GetBookingsByUser(int userId)
     {
-        return _bookings
-            .Where(b => b.UserId == userId)
-            .OrderByDescending(b => b.BookingId)
-            .ToList();
+        return _bookingRepository.GetBookingsByUser(userId);
     }
 
     public Booking? GetBookingById(int bookingId)
     {
-        return _bookings.FirstOrDefault(b => b.BookingId == bookingId);
+        return _bookingRepository.GetBookingById(bookingId);
     }
 
     public bool CancelBooking(int bookingId, int userId)
     {
-        var booking = _bookings.FirstOrDefault(b =>
-            b.BookingId == bookingId &&
-            b.UserId == userId &&
-            b.Status == BookingStatus.Booked);
+        Booking? booking = _bookingRepository.GetBookingById(bookingId);
 
         if (booking == null)
         {
             return false;
         }
 
-        booking.Status = BookingStatus.Cancelled;
+        if (booking.UserId != userId)
+        {
+            return false;
+        }
+
+        if (booking.Status != BookingStatus.Booked)
+        {
+            return false;
+        }
+
+        _bookingRepository.CancelBooking(bookingId);
+        _bookingOptionRepository.IncreaseCapacity(booking.OptionId);
+
         return true;
     }
 }

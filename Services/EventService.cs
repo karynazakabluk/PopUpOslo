@@ -8,29 +8,29 @@ public class EventService
 {
     private readonly EventRepository _eventRepository = new();
 
-    public void CreateEvent(
-        string title,
-        string description,
-        string venue,
-        DateTime dateTime,
-        EventCategory category,
-        EventType type,
-        int organizerId)
-    {
-        var ev = new Event
-        {
-            Title = title,
-            Description = description,
-            Venue = venue,
-            DateTime = dateTime,
-            Category = category,
-            Type = type,
-            OrganizerId = organizerId,
-            Status = EventStatus.Upcoming
-        };
+    public int CreateEvent(
+    	string title,
+    	string description,
+    	string venue,
+    	DateTime dateTime,
+    	EventCategory category,
+    	EventType type,
+    	int organizerId)
+	{
+    	var ev = new Event
+   		{
+        	Title = title,
+        	Description = description,
+        	Venue = venue,
+        	DateTime = dateTime,
+        	Category = category,
+        	Type = type,
+        	OrganizerId = organizerId,
+        	Status = EventStatus.Upcoming
+    	};
 
-        _eventRepository.AddEvent(ev);
-    }
+    	return _eventRepository.AddEvent(ev);
+	}
 
     public List<Event> GetAllEvents()
     {

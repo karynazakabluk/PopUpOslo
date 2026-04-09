@@ -27,8 +27,10 @@ CREATE TABLE IF NOT EXISTS BookingOptions (
                                 Name TEXT NOT NULL,
                                 Price REAL NOT NULL CHECK(Price >= 0),
                                 Capacity INTEGER NOT NULL CHECK(Capacity >= 0),
+                                RemainingCapacity INTEGER NOT NULL CHECK(RemainingCapacity >= 0),
 
-                                FOREIGN KEY (EventId) REFERENCES Events(EventId)
+
+                                 FOREIGN KEY (EventId) REFERENCES Events(EventId)
                                     ON DELETE CASCADE
 );
 

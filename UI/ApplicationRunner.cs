@@ -16,6 +16,7 @@ public class ApplicationRunner
     private readonly BookingService _bookingService = new();
     private readonly ReviewService _reviewService = new();
     private readonly SearchService _searchService = new();
+    private readonly BookingOptionService _bookingOptionService = new();
 
     public void Run()
     {
@@ -360,16 +361,18 @@ public class ApplicationRunner
 
         EventType type = typeChoice == 1 ? EventType.Workshop : EventType.Dining;
 
-        _eventService.CreateEvent(
-            title,
-            description,
-            venue,
-            dateTime,
-            category,
-            type,
-            _currentUserId);
+        int eventId = _eventService.CreateEvent(
+    		title,
+    		description,
+    		venue,
+    		dateTime,
+    		category,
+    		type,
+    		_currentUserId);
 
-        Menu.ShowSuccess("Event created successfully.");
+		_bookingOptionService.CreateDefaultOption(eventId);
+
+		Menu.ShowSuccess("Event created successfully");
         Menu.Pause();
     }
 

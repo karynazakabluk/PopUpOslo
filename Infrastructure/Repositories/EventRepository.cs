@@ -6,27 +6,28 @@ namespace PopUpOslo.Infrastructure.Repositories;
 
 public class EventRepository : BaseRepository
 {
-    public void AddEvent(Event ev)
-    {
-        using var conn = GetOpenConnection();
+    public int AddEvent(Event ev)
+{
+    	using var conn = GetOpenConnection();
 
-        using var cmd = conn.CreateCommand();
-        cmd.CommandText = @"
+    	using var cmd = conn.CreateCommand();
+    	cmd.CommandText = @"
             INSERT INTO Events
             (Title, Description, Category, Type, DateTime, Venue, OrganizerId, Status)
-            VALUES (@t, @d, @c, @ty, @dt, @v, @o, @s);";
+            VALUES (@t, @d, @c, @ty, @dt, @v, @o, @s);
+            SELECT last_insert_rowid();";
 
-        cmd.Parameters.AddWithValue("@t", ev.Title);
-        cmd.Parameters.AddWithValue("@d", ev.Description);
-        cmd.Parameters.AddWithValue("@c", ev.Category.ToString());
-        cmd.Parameters.AddWithValue("@ty", ev.Type.ToString());
-        cmd.Parameters.AddWithValue("@dt", ev.DateTime.ToString("s"));
-        cmd.Parameters.AddWithValue("@v", ev.Venue);
-        cmd.Parameters.AddWithValue("@o", ev.OrganizerId);
-        cmd.Parameters.AddWithValue("@s", ev.Status.ToString());
+    	cmd.Parameters.AddWithValue("@t", ev.Title);
+    	cmd.Parameters.AddWithValue("@d", ev.Description);
+    	cmd.Parameters.AddWithValue("@c", ev.Category.ToString());
+    	cmd.Parameters.AddWithValue("@ty", ev.Type.ToString());
+    	cmd.Parameters.AddWithValue("@dt", ev.DateTime.ToString("s"));
+    	cmd.Parameters.AddWithValue("@v", ev.Venue);
+    	cmd.Parameters.AddWithValue("@o", ev.OrganizerId);
+    	cmd.Parameters.AddWithValue("@s", ev.Status.ToString());
 
-        cmd.ExecuteNonQuery();
-    }
+    	return Convert.ToInt32(cmd.ExecuteScalar());
+}
 
     public List<Event> GetAllEvents()
     {
