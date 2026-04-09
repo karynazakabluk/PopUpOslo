@@ -13,6 +13,7 @@ public class ApplicationRunner
 
     private readonly EventService _eventService = new();
     private readonly AuthService _authService = new();
+    private readonly BookingService _bookingService = new();
 
     public void Run()
     {
@@ -166,8 +167,8 @@ public class ApplicationRunner
         Console.WriteLine("Browse Options");
         Console.WriteLine("----------------------------------------");
         Console.WriteLine("1. View all events");
-        Console.WriteLine("2. Search by keyword");
-        Console.WriteLine("3. Filter by category");Console.WriteLine("4. Filter by type");
+        Console.WriteLine("2. Search by keyword");Console.WriteLine("3. Filter by category");
+        Console.WriteLine("4. Filter by type");
         Console.WriteLine("0. Back");
         Console.WriteLine();
 
@@ -289,7 +290,7 @@ public class ApplicationRunner
         string title = InputHandler.ReadRequiredString("Enter title: ");
         string description = InputHandler.ReadRequiredString("Enter description: ");
         string venue = InputHandler.ReadRequiredString("Enter venue: ");
-        DateTime dateTime = InputHandler.ReadDateTime("Enter date and time (e.g. 2026-05-10 18:30): ");
+        DateTime dateTime = InputHandler.ReadDateTime("Enter date and time (e.g.2026-05-10 18:30): ");
 
         Console.WriteLine();
         Console.WriteLine("Choose category:");
@@ -382,6 +383,15 @@ public class ApplicationRunner
             return;
         }
 
+        bool success = _bookingService.CreateBooking(_currentUserId, selected);
+
+        if (!success)
+        {
+            Menu.ShowError("You already booked this event.");
+            Menu.Pause();
+            return;
+        }
+
         Menu.ShowSuccess($"Booked: {selected.Title}");
         Menu.Pause();
     }
@@ -390,7 +400,44 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("My Bookings");
 
-        Menu.ShowMessage("Booking list will be connected later. Temporary flow only.");
+        var bookings = _bookingService.GetBookingsByUser(_currentUserId);
+
+        if (bookings.Count == 0)
+        {
+            Menu.ShowMessage("You do not have any bookings yet.");
+            Menu.Pause();
+            return;
+        }
+
+        foreach (var booking in bookings)
+        {
+            Event? ev = _eventService.GetEventById(booking.EventId);
+            string title = ev?.Title ?? "Unknown Event";
+
+            Console.WriteLine($"{booking.BookingId}. {title} | {booking.Status} | {booking.BookingDate}");
+        }
+
+        Console.WriteLine();
+
+        bool cancelBooking = InputHandler.Confirm("Do you want to cancel a booking");
+
+        if (!cancelBooking)
+        {
+            Menu.Pause();
+            return;
+        }
+
+        int bookingId = InputHandler.ReadInt("Enter booking id: ");
+        bool success = _bookingService.CancelBooking(bookingId, _currentUserId);
+
+        if (!success)
+        {
+            Menu.ShowError("Booking not found or cannot be cancelled.");
+            Menu.Pause();
+            return;
+        }
+
+        Menu.ShowSuccess("Booking cancelled successfully.");
         Menu.Pause();
     }
 
@@ -437,7 +484,8 @@ public class ApplicationRunner
 
         if (confirmExit)
         {
-            Menu.ShowMessage("Goodbye!");_isRunning = false;
+            Menu.ShowMessage("Goodbye!");
+            _isRunning = false;
         }
     }
 }
