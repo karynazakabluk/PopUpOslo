@@ -15,6 +15,7 @@ public class ApplicationRunner
     private readonly AuthService _authService = new();
     private readonly BookingService _bookingService = new();
     private readonly ReviewService _reviewService = new();
+    private readonly SearchService _searchService = new();
 
     public void Run()
     {
@@ -44,22 +45,17 @@ public class ApplicationRunner
             case 1:
                 HandleRegister();
                 break;
-
             case 2:
                 HandleLogin();
                 break;
-
             case 3:
                 HandleBrowseEvents();
                 break;
-
             case 0:
                 HandleExit();
                 break;
-
             default:
-                Menu.ShowError("Invalid option. Please try again.");
-                Menu.Pause();
+                ShowInvalidOption();
                 break;
         }
     }
@@ -76,34 +72,26 @@ public class ApplicationRunner
             case 1:
                 HandleCreateEvent();
                 break;
-
             case 2:
                 HandleViewMyEvents();
                 break;
-
             case 3:
                 HandleBrowseEvents();
                 break;
-
             case 4:
                 HandleBookEvent();
                 break;
-
             case 5:
                 HandleMyBookings();
                 break;
-
             case 6:
                 HandleLeaveReview();
                 break;
-
             case 0:
                 HandleLogout();
                 break;
-
             default:
-                Menu.ShowError("Invalid option. Please try again.");
-                Menu.Pause();
+                ShowInvalidOption();
                 break;
         }
     }
@@ -167,7 +155,7 @@ public class ApplicationRunner
 
         Console.WriteLine("Browse Options");
         Console.WriteLine("----------------------------------------");
-        Console.WriteLine("1.View all events");
+        Console.WriteLine("1. View all events");
         Console.WriteLine("2. Search by keyword");
         Console.WriteLine("3. Filter by category");
         Console.WriteLine("4. Filter by type");
@@ -177,66 +165,79 @@ public class ApplicationRunner
         int choice = InputHandler.ReadInt("Choose an option: ");
         Console.WriteLine();
 
-        List<Event> results = new();
-
-        switch (choice)
+        List<Event> results = choice switch
         {
-            case 1:
-                results = _eventService.GetAllEvents();
-                break;
+            1 => _eventService.GetAllEvents(),
+            2 => HandleKeywordSearch(allEvents),
+            3 => HandleCategoryFilter(allEvents),
+            4 => HandleTypeFilter(allEvents),
+            0 => new List<Event>(),
+            _ => new List<Event>()
+        };
 
-            case 2:
-                string keyword = InputHandler.ReadRequiredString("Enter keyword: ");
-                results = _eventService.SearchEvents(keyword);
-                break;
-
-            case 3:
-                Console.WriteLine("Categories");
-                Console.WriteLine("1. Food");
-                Console.WriteLine("2. Networking");
-                Console.WriteLine("3. Education");
-                Console.WriteLine("4. Culture");
-                Console.WriteLine("5. Other");
-                Console.WriteLine();
-
-                int categoryChoice = InputHandler.ReadIntInRange("Choose category (1-5): ", 1, 5);
-
-                EventCategory selectedCategory = categoryChoice switch
-                {
-                    1 => EventCategory.Food,
-                    2 => EventCategory.Networking,
-                    3 => EventCategory.Education,
-                    4 => EventCategory.Culture,
-                    _ => EventCategory.Other
-                };
-
-                results = _eventService.FilterByCategory(selectedCategory);
-                break;
-
-            case 4:
-                Console.WriteLine("Types");
-                Console.WriteLine("1. Workshop");
-                Console.WriteLine("2. Dining");
-                Console.WriteLine();
-
-                int typeChoice = InputHandler.ReadIntInRange("Choose type (1-2): ", 1, 2);
-
-                EventType selectedType = typeChoice == 1
-                    ? EventType.Workshop
-                    : EventType.Dining;
-
-                results = _eventService.FilterByType(selectedType);
-                break;
-
-            case 0:
-                return;
-
-            default:
-                Menu.ShowError("Invalid option.");
-                Menu.Pause();
-                return;
+        if (choice == 0)
+        {
+            return;
         }
 
+        if (choice < 0 || choice > 4)
+        {
+            Menu.ShowError("Invalid option.");
+            Menu.Pause();
+            return;
+        }
+
+        DisplayEventResults(results);
+    }
+
+    private List<Event> HandleKeywordSearch(List<Event> allEvents)
+    {
+        string keyword = InputHandler.ReadRequiredString("Enter keyword: ");
+        return _searchService.SearchEvents(allEvents, keyword);
+    }
+
+    private List<Event> HandleCategoryFilter(List<Event> allEvents)
+    {
+        Console.WriteLine("Categories");
+        Console.WriteLine("1. Food");
+        Console.WriteLine("2. Networking");
+        Console.WriteLine("3. Education");
+        Console.WriteLine("4. Culture");
+        Console.WriteLine("5. Other");
+        Console.WriteLine();
+
+        int categoryChoice = InputHandler.ReadIntInRange("Choose category (1-5): ", 1, 5);
+
+        EventCategory selectedCategory = categoryChoice switch
+        {
+            1 => EventCategory.Food,
+            2 => EventCategory.Networking,
+            3 => EventCategory.Education,
+            4 => EventCategory.Culture,
+            _ => EventCategory.Other
+        };
+
+        return _searchService.FilterByCategory(allEvents, selectedCategory);
+    }
+
+    private List<Event> HandleTypeFilter(List<Event> allEvents)
+    {
+        Console.WriteLine("Types");
+        Console.WriteLine("1. Workshop");
+        Console.WriteLine("2. Dining");
+        Console.WriteLine();
+
+        int typeChoice = InputHandler.ReadIntInRange("Choose type (1-2): ", 1, 2);
+
+        EventType selectedType = typeChoice == 1
+            ? EventType.Workshop
+            : EventType.Dining;
+
+        return _searchService.FilterByType(allEvents, selectedType);
+    }
+
+    private void DisplayEventResults(List<Event> results)
+    {
         Console.WriteLine("Results");
         Console.WriteLine("----------------------------------------");
 
@@ -279,6 +280,11 @@ public class ApplicationRunner
             return;
         }
 
+        DisplayEventDetails(selected);
+    }
+
+    private void DisplayEventDetails(Event selected)
+    {
         Menu.ShowSectionTitle("Event Details");
         Console.WriteLine($"Title: {selected.Title}");
         Console.WriteLine($"Description: {selected.Description}");
@@ -288,10 +294,10 @@ public class ApplicationRunner
         Console.WriteLine($"Type: {selected.Type}");
         Console.WriteLine($"Status: {selected.Status}");
 
-        double selectedAvgRating = _reviewService.GetAverageRating(selected.EventId);
-        if (selectedAvgRating > 0)
+        double avgRating = _reviewService.GetAverageRating(selected.EventId);
+        if (avgRating > 0)
         {
-            Console.WriteLine($"Average rating: {selectedAvgRating:F1}/5");
+            Console.WriteLine($"Average rating: {avgRating:F1}/5");
         }
 
         Console.WriteLine();
@@ -428,7 +434,8 @@ public class ApplicationRunner
 
         bool success = _bookingService.CreateBooking(_currentUserId, selected);
 
-        if (!success){
+        if (!success)
+        {
             Menu.ShowError("You already booked this event.");
             Menu.Pause();
             return;
@@ -570,9 +577,7 @@ public class ApplicationRunner
 
         Menu.ShowSuccess("You have been logged out.");
         Menu.Pause();
-    }
-
-    private void HandleExit()
+    }private void HandleExit()
     {
         bool confirmExit = InputHandler.Confirm("Are you sure you want to exit");
 
@@ -581,5 +586,11 @@ public class ApplicationRunner
             Menu.ShowMessage("Goodbye!");
             _isRunning = false;
         }
+    }
+
+    private void ShowInvalidOption()
+    {
+        Menu.ShowError("Invalid option. Please try again.");
+        Menu.Pause();
     }
 }
