@@ -9,9 +9,10 @@ public class ApplicationRunner
     private bool _isRunning = true;
     private bool _isLoggedIn = false;
     private string _currentUsername = "Guest";
+    private int _currentUserId = 0;
 
     private readonly EventService _eventService = new();
-    private const int CurrentUserId = 1;
+    private readonly AuthService _authService = new();
 
     public void Run()
     {
@@ -112,7 +113,16 @@ public class ApplicationRunner
         string username = InputHandler.ReadRequiredString("Enter username: ");
         string password = InputHandler.ReadPassword("Enter password: ");
 
-        Menu.ShowSuccess($"Account for '{username}' created successfully (temporary flow).");
+        bool success = _authService.Register(username, password);
+
+        if (!success)
+        {
+            Menu.ShowError("Registration failed. Username may already exist.");
+            Menu.Pause();
+            return;
+        }
+
+        Menu.ShowSuccess($"Account for '{username}' created successfully.");
         Menu.Pause();
     }
 
@@ -123,10 +133,20 @@ public class ApplicationRunner
         string username = InputHandler.ReadRequiredString("Enter username: ");
         string password = InputHandler.ReadPassword("Enter password: ");
 
-        _isLoggedIn = true;
-        _currentUsername = username;
+        User? user = _authService.Login(username, password);
 
-        Menu.ShowSuccess($"Welcome, {username}!");
+        if (user == null)
+        {
+            Menu.ShowError("Invalid username or password.");
+            Menu.Pause();
+            return;
+        }
+
+        _isLoggedIn = true;
+        _currentUsername = user.Username;
+        _currentUserId = user.UserId;
+
+        Menu.ShowSuccess($"Welcome, {user.Username}!");
         Menu.Pause();
     }
 
@@ -147,8 +167,7 @@ public class ApplicationRunner
         Console.WriteLine("----------------------------------------");
         Console.WriteLine("1. View all events");
         Console.WriteLine("2. Search by keyword");
-        Console.WriteLine("3. Filter by category");
-        Console.WriteLine("4. Filter by type");
+        Console.WriteLine("3. Filter by category");Console.WriteLine("4. Filter by type");
         Console.WriteLine("0. Back");
         Console.WriteLine();
 
@@ -305,7 +324,7 @@ public class ApplicationRunner
             dateTime,
             category,
             type,
-            CurrentUserId);
+            _currentUserId);
 
         Menu.ShowSuccess("Event created successfully.");
         Menu.Pause();
@@ -315,7 +334,7 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("My Events");
 
-        var myEvents = _eventService.GetEventsByOrganizer(CurrentUserId);
+        var myEvents = _eventService.GetEventsByOrganizer(_currentUserId);
 
         if (myEvents.Count == 0)
         {
@@ -406,6 +425,7 @@ public class ApplicationRunner
 
         _isLoggedIn = false;
         _currentUsername = "Guest";
+        _currentUserId = 0;
 
         Menu.ShowSuccess("You have been logged out.");
         Menu.Pause();
@@ -417,8 +437,7 @@ public class ApplicationRunner
 
         if (confirmExit)
         {
-            Menu.ShowMessage("Goodbye!");
-            _isRunning = false;
+            Menu.ShowMessage("Goodbye!");_isRunning = false;
         }
     }
 }
