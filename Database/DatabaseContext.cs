@@ -1,11 +1,11 @@
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 
 public static class DatabaseContext
 {
     private static string connectionString = "Data Source=Database/database.db";
 
-    public static SQLiteConnection GetConnection()
+    public static SqliteConnection GetConnection()
     {
-        return new SQLiteConnection(connectionString);
+        return new SqliteConnection(connectionString);
     }
 }

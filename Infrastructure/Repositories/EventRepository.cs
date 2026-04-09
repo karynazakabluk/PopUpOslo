@@ -1,39 +1,41 @@
-using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
+using PopUpOslo.Domain.Entities;
+using PopUpOslo.Domain.Enums;
+
+namespace PopUpOslo.Infrastructure.Repositories;
 
 public class EventRepository : BaseRepository
 {
-    //  Create Event
     public void AddEvent(Event ev)
     {
         using var conn = GetOpenConnection();
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = @"INSERT INTO Events 
-        (Title, Description, Category, Type, DateTime, Venue, OrganizerId, Status)
-        VALUES (@t, @d, @c, @ty, @dt, @v, @o, @s)";
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            INSERT INTO Events
+            (Title, Description, Category, Type, DateTime, Venue, OrganizerId, Status)
+            VALUES (@t, @d, @c, @ty, @dt, @v, @o, @s);";
 
         cmd.Parameters.AddWithValue("@t", ev.Title);
         cmd.Parameters.AddWithValue("@d", ev.Description);
-        cmd.Parameters.AddWithValue("@c", ev.Category);
-        cmd.Parameters.AddWithValue("@ty", ev.Type);
-        cmd.Parameters.AddWithValue("@dt", ev.DateTime);
+        cmd.Parameters.AddWithValue("@c", ev.Category.ToString());
+        cmd.Parameters.AddWithValue("@ty", ev.Type.ToString());
+        cmd.Parameters.AddWithValue("@dt", ev.DateTime.ToString("s"));
         cmd.Parameters.AddWithValue("@v", ev.Venue);
         cmd.Parameters.AddWithValue("@o", ev.OrganizerId);
-        cmd.Parameters.AddWithValue("@s", ev.Status);
+        cmd.Parameters.AddWithValue("@s", ev.Status.ToString());
 
         cmd.ExecuteNonQuery();
     }
 
-    //  Get All Events
     public List<Event> GetAllEvents()
     {
         var list = new List<Event>();
 
         using var conn = GetOpenConnection();
+        using var cmd = conn.CreateCommand();
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT * FROM Events";
+        cmd.CommandText = "SELECT * FROM Events ORDER BY DateTime;";
 
         using var reader = cmd.ExecuteReader();
 
@@ -45,13 +47,12 @@ public class EventRepository : BaseRepository
         return list;
     }
 
-    //  Get Event By ID
-    public Event GetEventById(int eventId)
+    public Event? GetEventById(int eventId)
     {
         using var conn = GetOpenConnection();
+        using var cmd = conn.CreateCommand();
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT * FROM Events WHERE EventId=@id";
+        cmd.CommandText = "SELECT * FROM Events WHERE EventId = @id;";
         cmd.Parameters.AddWithValue("@id", eventId);
 
         using var reader = cmd.ExecuteReader();
@@ -64,59 +65,81 @@ public class EventRepository : BaseRepository
         return null;
     }
 
-    // Edit Event
+    public List<Event> GetEventsByOrganizer(int organizerId)
+    {
+        var list = new List<Event>();
+
+        using var conn = GetOpenConnection();
+        using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = "SELECT * FROM Events WHERE OrganizerId = @id ORDER BY DateTime;";
+        cmd.Parameters.AddWithValue("@id", organizerId);
+
+        using var reader = cmd.ExecuteReader();
+
+        while (reader.Read())
+        {
+            list.Add(MapEvent(reader));
+        }
+
+        return list;
+    }
+
     public void UpdateEvent(Event ev)
     {
         using var conn = GetOpenConnection();
+        using var cmd = conn.CreateCommand();
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = @"UPDATE Events SET
-            Title = @t,
-            Description = @d,
-            Category = @c,
-            Type = @ty,
-            DateTime = @dt,
-            Venue = @v
-            WHERE EventId = @id";
+        cmd.CommandText = @"
+            UPDATE Events SET
+                Title = @t,
+                Description = @d,
+                Category = @c,
+                Type = @ty,
+                DateTime = @dt,
+                Venue = @v,
+                Status = @s
+            WHERE EventId = @id;";
 
         cmd.Parameters.AddWithValue("@t", ev.Title);
         cmd.Parameters.AddWithValue("@d", ev.Description);
-        cmd.Parameters.AddWithValue("@c", ev.Category);
-        cmd.Parameters.AddWithValue("@ty", ev.Type);
-        cmd.Parameters.AddWithValue("@dt", ev.DateTime);
+        cmd.Parameters.AddWithValue("@c", ev.Category.ToString());
+        cmd.Parameters.AddWithValue("@ty", ev.Type.ToString());
+        cmd.Parameters.AddWithValue("@dt", ev.DateTime.ToString("s"));
         cmd.Parameters.AddWithValue("@v", ev.Venue);
+        cmd.Parameters.AddWithValue("@s", ev.Status.ToString());
         cmd.Parameters.AddWithValue("@id", ev.EventId);
 
         cmd.ExecuteNonQuery();
     }
 
-    // Cancel Event
     public void CancelEvent(int eventId)
     {
         using var conn = GetOpenConnection();
+        using var cmd = conn.CreateCommand();
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = @"UPDATE Events 
-                            SET Status = 'Cancelled' 
-                            WHERE EventId = @id";
+        cmd.CommandText = @"
+            UPDATE Events
+            SET Status = 'Cancelled'
+            WHERE EventId = @id;";
 
         cmd.Parameters.AddWithValue("@id", eventId);
 
         cmd.ExecuteNonQuery();
     }
 
-    // Search Events
     public List<Event> SearchEvents(string keyword)
     {
         var list = new List<Event>();
 
         using var conn = GetOpenConnection();
+        using var cmd = conn.CreateCommand();
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = @"SELECT * FROM Events 
-                            WHERE Title LIKE @k 
-                               OR Description LIKE @k 
-                               OR Venue LIKE @k";
+        cmd.CommandText = @"
+            SELECT * FROM Events
+            WHERE Title LIKE @k
+               OR Description LIKE @kOR Venue LIKE @k
+            ORDER BY DateTime;";
 
         cmd.Parameters.AddWithValue("@k", $"%{keyword}%");
 
@@ -130,18 +153,42 @@ public class EventRepository : BaseRepository
         return list;
     }
 
-    // Filter Events
-    public List<Event> FilterEvents(string category, string type)
+    public List<Event> FilterByCategory(string category)
     {
         var list = new List<Event>();
 
         using var conn = GetOpenConnection();
+        using var cmd = conn.CreateCommand();
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = @"SELECT * FROM Events 
-                            WHERE Category = @c AND Type = @t";
+        cmd.CommandText = @"
+            SELECT * FROM Events
+            WHERE Category = @c
+            ORDER BY DateTime;";
 
         cmd.Parameters.AddWithValue("@c", category);
+
+        using var reader = cmd.ExecuteReader();
+
+        while (reader.Read())
+        {
+            list.Add(MapEvent(reader));
+        }
+
+        return list;
+    }
+
+    public List<Event> FilterByType(string type)
+    {
+        var list = new List<Event>();
+
+        using var conn = GetOpenConnection();
+        using var cmd = conn.CreateCommand();
+
+        cmd.CommandText = @"
+            SELECT * FROM Events
+            WHERE Type = @t
+            ORDER BY DateTime;";
+
         cmd.Parameters.AddWithValue("@t", type);
 
         using var reader = cmd.ExecuteReader();
@@ -154,20 +201,29 @@ public class EventRepository : BaseRepository
         return list;
     }
 
-    // Private Mapper (VERY CLEAN APPROACH)
-    private Event MapEvent(SQLiteDataReader reader)
+    private Event MapEvent(SqliteDataReader reader)
     {
+        string categoryText = reader["Category"]?.ToString() ?? "Other";
+        string typeText = reader["Type"]?.ToString() ?? "Workshop";
+        string statusText = reader["Status"]?.ToString() ?? "Upcoming";
+        string dateText = reader["DateTime"]?.ToString() ?? DateTime.Now.ToString("s");
+
+        Enum.TryParse(categoryText, out EventCategory category);
+        Enum.TryParse(typeText, out EventType type);
+        Enum.TryParse(statusText, out EventStatus status);
+        DateTime.TryParse(dateText, out DateTime dateTime);
+
         return new Event
         {
-            EventId = reader.GetInt32(0),
-            Title = reader.GetString(1),
-            Description = reader.IsDBNull(2) ? "" : reader.GetString(2),
-            Category = reader.IsDBNull(3) ? "" : reader.GetString(3),
-            Type = reader.IsDBNull(4) ? "" : reader.GetString(4),
-            DateTime = reader.GetString(5),
-            Venue = reader.GetString(6),
-            OrganizerId = reader.GetInt32(7),
-            Status = reader.GetString(8)
+            EventId = Convert.ToInt32(reader["EventId"]),
+            Title = reader["Title"]?.ToString() ?? string.Empty,
+            Description = reader["Description"]?.ToString() ?? string.Empty,
+            Category = category,
+            Type = type,
+            DateTime = dateTime,
+            Venue = reader["Venue"]?.ToString() ?? string.Empty,
+            OrganizerId = Convert.ToInt32(reader["OrganizerId"]),
+            Status = status
         };
     }
 }

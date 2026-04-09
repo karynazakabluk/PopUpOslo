@@ -1,4 +1,8 @@
-using System.Data.SQLite;
+using PopUpOslo.Domain.Entities;
+using PopUpOslo.Domain.Enums;
+using Microsoft.Data.Sqlite;
+
+namespace PopUpOslo.Infrastructure.Repositories;
 
 public class UserRepository : BaseRepository
 {

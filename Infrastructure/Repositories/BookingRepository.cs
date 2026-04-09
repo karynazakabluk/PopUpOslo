@@ -1,95 +1,98 @@
-using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
+using PopUpOslo.Domain.Entities;
+using PopUpOslo.Domain.Enums;
+
+namespace PopUpOslo.Infrastructure.Repositories;
 
 public class BookingRepository : BaseRepository
 {
-    //  Create booking
     public void AddBooking(Booking booking)
     {
-        using var conn = GetOpenConnection(); // from superclass
+        using var conn = GetOpenConnection();
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = @"INSERT INTO Bookings 
-        (UserId, EventId, OptionId, Price, Status)
-        VALUES (@u, @e, @o, @p, @s)";
+        using var cmd = conn.CreateCommand();
+        cmd.CommandText = @"
+            INSERT INTO Bookings
+            (UserId, EventId, OptionId, Price, Status, BookingDate)
+            VALUES (@u, @e, @o, @p, @s, @d);";
 
         cmd.Parameters.AddWithValue("@u", booking.UserId);
         cmd.Parameters.AddWithValue("@e", booking.EventId);
         cmd.Parameters.AddWithValue("@o", booking.OptionId);
-        cmd.Parameters.AddWithValue("@p", booking.Price);
-        cmd.Parameters.AddWithValue("@s", booking.Status);
+        cmd.Parameters.AddWithValue("@p", booking.PriceAtBooking);
+        cmd.Parameters.AddWithValue("@s", booking.Status.ToString());
+        cmd.Parameters.AddWithValue("@d", booking.BookingDate);
 
         cmd.ExecuteNonQuery();
     }
 
-    //  Get bookings by user
     public List<Booking> GetBookingsByUser(int userId)
     {
         var list = new List<Booking>();
 
-        using var conn = GetOpenConnection(); // reuse
+        using var conn = GetOpenConnection();
+        using var cmd = conn.CreateCommand();
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT * FROM Bookings WHERE UserId=@id";
+        cmd.CommandText = "SELECT * FROM Bookings WHERE UserId = @id;";
         cmd.Parameters.AddWithValue("@id", userId);
 
         using var reader = cmd.ExecuteReader();
 
         while (reader.Read())
         {
-            list.Add(new Booking
-            {
-                BookingId = reader.GetInt32(0),
-                UserId = reader.GetInt32(1),
-                EventId = reader.GetInt32(2),
-                OptionId = reader.GetInt32(3),
-                Price = reader.GetDouble(4),
-                Status = reader.GetString(5)
-            });
+            list.Add(MapBooking(reader));
         }
 
         return list;
     }
 
-    //  Cancel booking
     public void CancelBooking(int bookingId)
     {
         using var conn = GetOpenConnection();
+        using var cmd = conn.CreateCommand();
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = @"UPDATE Bookings 
-                            SET Status = 'Cancelled' 
-                            WHERE BookingId = @id";
+        cmd.CommandText = @"
+            UPDATE Bookings
+            SET Status = 'Cancelled'
+            WHERE BookingId = @id;";
 
         cmd.Parameters.AddWithValue("@id", bookingId);
 
         cmd.ExecuteNonQuery();
     }
 
-    //  Get booking by ID
-    public Booking GetBookingById(int bookingId)
+    public Booking? GetBookingById(int bookingId)
     {
         using var conn = GetOpenConnection();
+        using var cmd = conn.CreateCommand();
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = "SELECT * FROM Bookings WHERE BookingId=@id";
+        cmd.CommandText = "SELECT * FROM Bookings WHERE BookingId = @id;";
         cmd.Parameters.AddWithValue("@id", bookingId);
 
         using var reader = cmd.ExecuteReader();
 
         if (reader.Read())
         {
-            return new Booking
-            {
-                BookingId = reader.GetInt32(0),
-                UserId = reader.GetInt32(1),
-                EventId = reader.GetInt32(2),
-                OptionId = reader.GetInt32(3),
-                Price = reader.GetDouble(4),
-                Status = reader.GetString(5)
-            };
+            return MapBooking(reader);
         }
 
         return null;
+    }
+
+    private Booking MapBooking(SqliteDataReader reader)
+    {
+        string statusText = reader["Status"]?.ToString() ?? "Booked";
+        Enum.TryParse(statusText, out BookingStatus status);
+
+        return new Booking
+        {
+            BookingId = Convert.ToInt32(reader["BookingId"]),
+            UserId = Convert.ToInt32(reader["UserId"]),
+            EventId = Convert.ToInt32(reader["EventId"]),
+            OptionId = Convert.ToInt32(reader["OptionId"]),
+            PriceAtBooking = Convert.ToDouble(reader["Price"]),
+            Status = status,
+            BookingDate = reader["BookingDate"]?.ToString() ?? string.Empty
+        };
     }
 }

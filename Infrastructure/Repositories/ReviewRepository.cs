@@ -1,5 +1,9 @@
+using PopUpOslo.Domain.Entities;
+using PopUpOslo.Domain.Enums;
 using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
+
+namespace PopUpOslo.Infrastructure.Repositories;
 
 public class ReviewRepository : BaseRepository
 {
@@ -91,7 +95,7 @@ public class ReviewRepository : BaseRepository
     }
 
     // Private Mapper (clean code)
-    private Review MapReview(SQLiteDataReader reader)
+    private Review MapReview(SqliteDataReader reader)
     {
         return new Review
         {
