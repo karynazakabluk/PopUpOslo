@@ -1,5 +1,6 @@
 using PopUpOslo.Domain.Entities;
 using PopUpOslo.Domain.Enums;
+using PopUpOslo.Services;
 
 namespace PopUpOslo.UI;
 
@@ -9,50 +10,8 @@ public class ApplicationRunner
     private bool _isLoggedIn = false;
     private string _currentUsername = "Guest";
 
-    private readonly List<Event> _events = new();
-    private int _nextEventId = 1;
-
-    public ApplicationRunner()
-    {
-        _events.Add(new Event
-        {
-            EventId = _nextEventId++,
-            Title = "Oslo Coffee Tasting",
-            Description = "A guided tasting of speciality coffee.",
-            Venue = "Vulkan",
-            DateTime = new DateTime(2026, 5, 12, 18, 0, 0),
-            Category = EventCategory.Food,
-            Type = EventType.Dining,
-            OrganizerId = 99,
-            Status = EventStatus.Upcoming
-        });
-
-        _events.Add(new Event
-        {
-            EventId = _nextEventId++,
-            Title = "Beginner Pottery Workshop",
-            Description = "Introductory pottery workshop for beginners.",
-            Venue = "Grünerløkka",
-            DateTime = new DateTime(2026, 5, 15, 17, 30, 0),
-            Category = EventCategory.Education,
-            Type = EventType.Workshop,
-            OrganizerId = 98,
-            Status = EventStatus.Upcoming
-        });
-
-        _events.Add(new Event
-        {
-            EventId = _nextEventId++,
-            Title = "Pop-up Sushi Night",
-            Description = "A themed sushi dining experience.",
-            Venue = "Tøyen",
-            DateTime = new DateTime(2026, 5, 20, 19, 0, 0),
-            Category = EventCategory.Culture,
-            Type = EventType.Dining,
-            OrganizerId = 97,
-            Status = EventStatus.Upcoming
-        });
-    }
+    private readonly EventService _eventService = new();
+    private const int CurrentUserId = 1;
 
     public void Run()
     {
@@ -175,7 +134,9 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("Browse Events");
 
-        if (_events.Count == 0)
+        var allEvents = _eventService.GetAllEvents();
+
+        if (allEvents.Count == 0)
         {
             Menu.ShowMessage("No events available.");
             Menu.Pause();
@@ -199,21 +160,12 @@ public class ApplicationRunner
         switch (choice)
         {
             case 1:
-                results = _events
-                    .OrderBy(e => e.DateTime)
-                    .ToList();
+                results = _eventService.GetAllEvents();
                 break;
 
             case 2:
-                string keyword = InputHandler.ReadRequiredString("Enter keyword: ").ToLower();
-
-                results = _events
-                    .Where(e =>
-                        e.Title.ToLower().Contains(keyword) ||
-                        e.Description.ToLower().Contains(keyword) ||
-                        e.Venue.ToLower().Contains(keyword))
-                    .OrderBy(e => e.DateTime)
-                    .ToList();
+                string keyword = InputHandler.ReadRequiredString("Enter keyword: ");
+                results = _eventService.SearchEvents(keyword);
                 break;
 
             case 3:
@@ -236,10 +188,7 @@ public class ApplicationRunner
                     _ => EventCategory.Other
                 };
 
-                results = _events
-                    .Where(e => e.Category == selectedCategory)
-                    .OrderBy(e => e.DateTime)
-                    .ToList();
+                results = _eventService.FilterByCategory(selectedCategory);
                 break;
 
             case 4:
@@ -254,10 +203,7 @@ public class ApplicationRunner
                     ? EventType.Workshop
                     : EventType.Dining;
 
-                results = _events
-                    .Where(e => e.Type == selectedType)
-                    .OrderBy(e => e.DateTime)
-                    .ToList();
+                results = _eventService.FilterByType(selectedType);
                 break;
 
             case 0:
@@ -289,12 +235,13 @@ public class ApplicationRunner
         bool viewDetails = InputHandler.Confirm("Do you want to view event details");
 
         if (!viewDetails)
-        {Menu.Pause();
+        {
+            Menu.Pause();
             return;
         }
 
         int eventId = InputHandler.ReadInt("Enter event id: ");
-        Event? selected = _events.FirstOrDefault(e => e.EventId == eventId);
+        Event? selected = _eventService.GetEventById(eventId);
 
         if (selected == null)
         {
@@ -351,20 +298,14 @@ public class ApplicationRunner
 
         EventType type = typeChoice == 1 ? EventType.Workshop : EventType.Dining;
 
-        var ev = new Event
-        {
-            EventId = _nextEventId++,
-            Title = title,
-            Description = description,
-            Venue = venue,
-            DateTime = dateTime,
-            Category = category,
-            Type = type,
-            OrganizerId = 1,
-            Status = EventStatus.Upcoming
-        };
-
-        _events.Add(ev);
+        _eventService.CreateEvent(
+            title,
+            description,
+            venue,
+            dateTime,
+            category,
+            type,
+            CurrentUserId);
 
         Menu.ShowSuccess("Event created successfully.");
         Menu.Pause();
@@ -374,10 +315,7 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("My Events");
 
-        var myEvents = _events
-            .Where(e => e.OrganizerId == 1)
-            .OrderBy(e => e.DateTime)
-            .ToList();
+        var myEvents = _eventService.GetEventsByOrganizer(CurrentUserId);
 
         if (myEvents.Count == 0)
         {
@@ -399,14 +337,16 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("Book Event");
 
-        if (_events.Count == 0)
+        var events = _eventService.GetAllEvents();
+
+        if (events.Count == 0)
         {
             Menu.ShowMessage("No events available to book.");
             Menu.Pause();
             return;
         }
 
-        foreach (var ev in _events)
+        foreach (var ev in events)
         {
             Console.WriteLine($"{ev.EventId}. {ev.Title}");
         }
@@ -414,7 +354,7 @@ public class ApplicationRunner
         Console.WriteLine();
 
         int eventId = InputHandler.ReadInt("Enter event id: ");
-        Event? selected = _events.FirstOrDefault(e => e.EventId == eventId);
+        Event? selected = _eventService.GetEventById(eventId);
 
         if (selected == null)
         {
@@ -424,17 +364,14 @@ public class ApplicationRunner
         }
 
         Menu.ShowSuccess($"Booked: {selected.Title}");
-        Menu.Pause();}
+        Menu.Pause();
+    }
 
     private void HandleMyBookings()
     {
         Menu.ShowSectionTitle("My Bookings");
 
-        Menu.ShowMessage("Temporary booking list:");
-        Console.WriteLine("1. Oslo Coffee Tasting | Confirmed");
-        Console.WriteLine("2. Pop-up Sushi Night | Confirmed");
-        Console.WriteLine();
-
+        Menu.ShowMessage("Booking list will be connected later. Temporary flow only.");
         Menu.Pause();
     }
 
