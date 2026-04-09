@@ -14,6 +14,7 @@ public class ApplicationRunner
     private readonly EventService _eventService = new();
     private readonly AuthService _authService = new();
     private readonly BookingService _bookingService = new();
+    private readonly ReviewService _reviewService = new();
 
     public void Run()
     {
@@ -166,8 +167,9 @@ public class ApplicationRunner
 
         Console.WriteLine("Browse Options");
         Console.WriteLine("----------------------------------------");
-        Console.WriteLine("1. View all events");
-        Console.WriteLine("2. Search by keyword");Console.WriteLine("3. Filter by category");
+        Console.WriteLine("1.View all events");
+        Console.WriteLine("2. Search by keyword");
+        Console.WriteLine("3. Filter by category");
         Console.WriteLine("4. Filter by type");
         Console.WriteLine("0. Back");
         Console.WriteLine();
@@ -247,7 +249,14 @@ public class ApplicationRunner
 
         foreach (var ev in results)
         {
+            double avgRating = _reviewService.GetAverageRating(ev.EventId);
+
             Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.Venue} | {ev.DateTime:g}");
+
+            if (avgRating > 0)
+            {
+                Console.WriteLine($"   Average rating: {avgRating:F1}/5");
+            }
         }
 
         Console.WriteLine();
@@ -278,8 +287,35 @@ public class ApplicationRunner
         Console.WriteLine($"Category: {selected.Category}");
         Console.WriteLine($"Type: {selected.Type}");
         Console.WriteLine($"Status: {selected.Status}");
-        Console.WriteLine();
 
+        double selectedAvgRating = _reviewService.GetAverageRating(selected.EventId);
+        if (selectedAvgRating > 0)
+        {
+            Console.WriteLine($"Average rating: {selectedAvgRating:F1}/5");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Reviews");
+        Console.WriteLine("----------------------------------------");
+
+        var reviews = _reviewService.GetReviewsByEvent(selected.EventId);
+
+        if (reviews.Count == 0)
+        {
+            Console.WriteLine("No reviews yet.");
+        }
+        else
+        {
+            foreach (var review in reviews)
+            {
+                Console.WriteLine($"Rating: {review.Rating}/5");
+                Console.WriteLine($"Comment: {review.Comment}");
+                Console.WriteLine($"Created: {review.CreatedAt}");
+                Console.WriteLine("----------------------------------------");
+            }
+        }
+
+        Console.WriteLine();
         Menu.Pause();
     }
 
@@ -290,7 +326,7 @@ public class ApplicationRunner
         string title = InputHandler.ReadRequiredString("Enter title: ");
         string description = InputHandler.ReadRequiredString("Enter description: ");
         string venue = InputHandler.ReadRequiredString("Enter venue: ");
-        DateTime dateTime = InputHandler.ReadDateTime("Enter date and time (e.g.2026-05-10 18:30): ");
+        DateTime dateTime = InputHandler.ReadDateTime("Enter date and time (e.g. 2026-05-10 18:30): ");
 
         Console.WriteLine();
         Console.WriteLine("Choose category:");
@@ -346,7 +382,14 @@ public class ApplicationRunner
 
         foreach (var ev in myEvents)
         {
+            double avgRating = _reviewService.GetAverageRating(ev.EventId);
+
             Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.DateTime:g}");
+
+            if (avgRating > 0)
+            {
+                Console.WriteLine($"   Average rating: {avgRating:F1}/5");
+            }
         }
 
         Console.WriteLine();
@@ -385,8 +428,7 @@ public class ApplicationRunner
 
         bool success = _bookingService.CreateBooking(_currentUserId, selected);
 
-        if (!success)
-        {
+        if (!success){
             Menu.ShowError("You already booked this event.");
             Menu.Pause();
             return;
@@ -445,17 +487,69 @@ public class ApplicationRunner
     {
         Menu.ShowSectionTitle("Leave Review");
 
+        var bookings = _bookingService.GetBookingsByUser(_currentUserId)
+            .Where(b => b.Status == BookingStatus.Booked)
+            .ToList();
+
+        if (bookings.Count == 0)
+        {
+            Menu.ShowMessage("You need at least one booking to leave a review.");
+            Menu.Pause();
+            return;
+        }
+
+        Console.WriteLine("Your Booked Events");
+        Console.WriteLine("----------------------------------------");
+
+        foreach (var booking in bookings)
+        {
+            Event? ev = _eventService.GetEventById(booking.EventId);
+            string title = ev?.Title ?? "Unknown Event";
+
+            Console.WriteLine($"{booking.EventId}. {title}");
+        }
+
+        Console.WriteLine();
+
         int eventId = InputHandler.ReadInt("Enter event id: ");
+        Event? selected = _eventService.GetEventById(eventId);
+
+        if (selected == null)
+        {
+            Menu.ShowError("Event not found.");
+            Menu.Pause();
+            return;
+        }
+
+        bool hasBooking = bookings.Any(b => b.EventId == eventId);
+
+        if (!hasBooking)
+        {
+            Menu.ShowError("You can only review events you booked.");
+            Menu.Pause();
+            return;
+        }
+
+        bool alreadyReviewed = _reviewService.HasUserReviewed(_currentUserId, eventId);
+
+        if (alreadyReviewed)
+        {
+            Menu.ShowError("You have already reviewed this event.");
+            Menu.Pause();
+            return;
+        }
+
         int rating = InputHandler.ReadIntInRange("Enter rating (1-5): ", 1, 5);
         string comment = InputHandler.ReadRequiredString("Enter comment: ");
 
-        Console.WriteLine();
-        Console.WriteLine("Review Summary");
-        Console.WriteLine("----------------------------------------");
-        Console.WriteLine($"Event ID: {eventId}");
-        Console.WriteLine($"Rating: {rating}");
-        Console.WriteLine($"Comment: {comment}");
-        Console.WriteLine();
+        bool success = _reviewService.AddReview(_currentUserId, eventId, rating, comment);
+
+        if (!success)
+        {
+            Menu.ShowError("Review could not be submitted.");
+            Menu.Pause();
+            return;
+        }
 
         Menu.ShowSuccess("Review submitted successfully.");
         Menu.Pause();
