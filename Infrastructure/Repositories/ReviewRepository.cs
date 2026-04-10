@@ -1,6 +1,9 @@
+using PopUpOslo.Domain.Entities;
+using PopUpOslo.Domain.Enums;
 using System.Collections.Generic;
 using Microsoft.Data.Sqlite;
-using PopUpOslo.Domain.Entities;
+
+namespace PopUpOslo.Infrastructure.Repositories;
 
 public class ReviewRepository : BaseRepository
 {

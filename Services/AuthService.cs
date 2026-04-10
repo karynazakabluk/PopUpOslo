@@ -1,16 +1,11 @@
 using PopUpOslo.Domain.Entities;
+using PopUpOslo.Infrastructure.Repositories;
 
 namespace PopUpOslo.Services;
 
 public class AuthService
 {
-    private readonly List<User> _users = new();
-    private int _nextUserId = 1;
-
-    public AuthService()
-    {
-        SeedSampleUsers();
-    }
+    private readonly UserRepository _userRepository = new();
 
     public bool Register(string username, string password)
     {
@@ -19,54 +14,47 @@ public class AuthService
             return false;
         }
 
-        bool exists = _users.Any(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
+        username = username.Trim();
+        password = password.Trim();
 
-        if (exists)
+        User? existingUser = _userRepository.GetUserByUsername(username);
+
+        if (existingUser != null)
         {
             return false;
         }
 
         var user = new User
         {
-            UserId = _nextUserId++,
-            Username = username.Trim(),
-            PasswordHash = password.Trim(),
+            Username = username,
+            PasswordHash = password, // later replace with hashing
             Role = "User"
         };
 
-        _users.Add(user);
+        _userRepository.AddUser(user);
         return true;
     }
 
     public User? Login(string username, string password)
     {
-        return _users.FirstOrDefault(u =>
-            u.Username.Equals(username.Trim(), StringComparison.OrdinalIgnoreCase) &&
-            u.PasswordHash == password.Trim());
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            return null;
+        }
+
+        username = username.Trim();
+        password = password.Trim();
+
+        return _userRepository.ValidateUser(username, password);
     }
 
     public User? GetUserByUsername(string username)
     {
-        return _users.FirstOrDefault(u =>
-            u.Username.Equals(username.Trim(), StringComparison.OrdinalIgnoreCase));
-    }
-
-    private void SeedSampleUsers()
-    {
-        _users.Add(new User
+        if (string.IsNullOrWhiteSpace(username))
         {
-            UserId = _nextUserId++,
-            Username = "anna",
-            PasswordHash = "1234",
-            Role = "User"
-        });
+            return null;
+        }
 
-        _users.Add(new User
-        {
-            UserId = _nextUserId++,
-            Username = "maria",
-            PasswordHash = "1234",
-            Role = "User"
-        });
+        return _userRepository.GetUserByUsername(username.Trim());
     }
 }

@@ -1,26 +1,28 @@
 using PopUpOslo.Domain.Entities;
+using PopUpOslo.Infrastructure.Repositories;
 
 namespace PopUpOslo.Services;
 
 public class ReviewService
 {
-    private readonly List<Review> _reviews = new();
-    private int _nextReviewId = 1;
+    private readonly ReviewRepository _reviewRepository = new();
 
     public bool AddReview(int userId, int eventId, int rating, string comment)
     {
-        bool alreadyReviewed = _reviews.Any(r =>
-            r.UserId == userId &&
-            r.EventId == eventId);
+        if (rating < 1 || rating > 5)
+        {
+            return false;
+        }
 
-        if (alreadyReviewed)
+        Review? existingReview = _reviewRepository.GetReviewByUserAndEvent(userId, eventId);
+
+        if (existingReview != null)
         {
             return false;
         }
 
         var review = new Review
         {
-            ReviewId = _nextReviewId++,
             UserId = userId,
             EventId = eventId,
             Rating = rating,
@@ -28,34 +30,23 @@ public class ReviewService
             CreatedAt = DateTime.Now.ToString("g")
         };
 
-        _reviews.Add(review);
+        _reviewRepository.AddReview(review);
         return true;
     }
 
     public List<Review> GetReviewsByEvent(int eventId)
     {
-        return _reviews
-            .Where(r => r.EventId == eventId)
-            .OrderByDescending(r => r.ReviewId)
-            .ToList();
+        return _reviewRepository.GetReviewsByEvent(eventId);
     }
 
     public bool HasUserReviewed(int userId, int eventId)
     {
-        return _reviews.Any(r =>
-            r.UserId == userId &&
-            r.EventId == eventId);
+        Review? review = _reviewRepository.GetReviewByUserAndEvent(userId, eventId);
+        return review != null;
     }
 
     public double GetAverageRating(int eventId)
     {
-        var eventReviews = _reviews.Where(r => r.EventId == eventId).ToList();
-
-        if (eventReviews.Count == 0)
-        {
-            return 0;
-        }
-
-        return eventReviews.Average(r => r.Rating);
+        return _reviewRepository.GetAverageRating(eventId);
     }
 }

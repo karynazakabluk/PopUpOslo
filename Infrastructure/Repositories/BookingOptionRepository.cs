@@ -1,6 +1,9 @@
+using PopUpOslo.Domain.Enums;
 using Microsoft.Data.Sqlite;
 using System.Collections.Generic;
 using PopUpOslo.Domain.Entities;
+
+namespace PopUpOslo.Infrastructure.Repositories;
 
 public class BookingOptionRepository : BaseRepository
 {
