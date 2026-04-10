@@ -1,5 +1,6 @@
 using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
+using PopUpOslo.Domain.Entities;
 
 public class ReviewRepository : BaseRepository
 {
@@ -60,8 +61,12 @@ public class ReviewRepository : BaseRepository
         {
             return MapReview(reader);
         }
+        else
+        {
+            throw new Exception("Review not found");
+        }
 
-        return null;
+
     }
 
     // Get average rating for event
@@ -91,7 +96,7 @@ public class ReviewRepository : BaseRepository
     }
 
     // Private Mapper (clean code)
-    private Review MapReview(SQLiteDataReader reader)
+    private Review MapReview(SqliteDataReader reader)
     {
         return new Review
         {

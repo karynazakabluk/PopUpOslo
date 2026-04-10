@@ -30,7 +30,7 @@ public class AuthService
         {
             UserId = _nextUserId++,
             Username = username.Trim(),
-            Password = password.Trim(),
+            PasswordHash = password.Trim(),
             Role = "User"
         };
 
@@ -42,7 +42,7 @@ public class AuthService
     {
         return _users.FirstOrDefault(u =>
             u.Username.Equals(username.Trim(), StringComparison.OrdinalIgnoreCase) &&
-            u.Password == password.Trim());
+            u.PasswordHash == password.Trim());
     }
 
     public User? GetUserByUsername(string username)
@@ -57,7 +57,7 @@ public class AuthService
         {
             UserId = _nextUserId++,
             Username = "anna",
-            Password = "1234",
+            PasswordHash = "1234",
             Role = "User"
         });
 
@@ -65,7 +65,7 @@ public class AuthService
         {
             UserId = _nextUserId++,
             Username = "maria",
-            Password = "1234",
+            PasswordHash = "1234",
             Role = "User"
         });
     }

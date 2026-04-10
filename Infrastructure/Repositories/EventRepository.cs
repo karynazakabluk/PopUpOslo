@@ -1,5 +1,7 @@
 using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
+using PopUpOslo.Domain.Entities;
+using PopUpOslo.Domain.Enums;
 
 public class EventRepository : BaseRepository
 {
@@ -60,8 +62,10 @@ public class EventRepository : BaseRepository
         {
             return MapEvent(reader);
         }
-
-        return null;
+        else
+        {
+            throw new Exception("Event not found");
+        }
     }
 
     // Edit Event
@@ -155,19 +159,32 @@ public class EventRepository : BaseRepository
     }
 
     // Private Mapper (VERY CLEAN APPROACH)
-    private Event MapEvent(SQLiteDataReader reader)
+    private Event MapEvent(SqliteDataReader reader)
     {
+        var dateString = reader.GetString(5);
         return new Event
         {
             EventId = reader.GetInt32(0),
             Title = reader.GetString(1),
             Description = reader.IsDBNull(2) ? "" : reader.GetString(2),
-            Category = reader.IsDBNull(3) ? "" : reader.GetString(3),
-            Type = reader.IsDBNull(4) ? "" : reader.GetString(4),
-            DateTime = reader.GetString(5),
+            Category = reader.IsDBNull(3)
+                ? default
+                : Enum.Parse<EventCategory>(reader.GetString(3)),
+            Type = reader.IsDBNull(4)
+                ? default
+                : Enum.TryParse<EventType>(
+                    reader.GetString(4),
+                    out var type)
+                    ? type
+                    : default,
+            
+
+            DateTime = DateTime.TryParse(dateString, out var dt)
+            ? dt
+            : default,
             Venue = reader.GetString(6),
             OrganizerId = reader.GetInt32(7),
-            Status = reader.GetString(8)
+            Status = Enum.Parse<EventStatus>(reader.GetString(8))
         };
     }
 }

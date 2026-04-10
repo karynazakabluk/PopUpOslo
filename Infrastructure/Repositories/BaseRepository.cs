@@ -1,14 +1,14 @@
-﻿using System.Data.SQLite;
+﻿using Microsoft.Data.Sqlite;
 
 public abstract class BaseRepository
 {
-    protected SQLiteConnection GetConnection()
+    protected SqliteConnection GetConnection()
     {
         return DatabaseContext.GetConnection();
     }
 
     
-    protected SQLiteConnection GetOpenConnection()
+    protected SqliteConnection GetOpenConnection()
     {
         var conn = GetConnection();
         conn.Open();

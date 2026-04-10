@@ -1,5 +1,6 @@
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using System.Collections.Generic;
+using PopUpOslo.Domain.Entities;
 
 public class BookingOptionRepository : BaseRepository
 {
@@ -74,8 +75,11 @@ public class BookingOptionRepository : BaseRepository
                 RemainingCapacity = reader.GetInt32(5)
             };
         }
+        else
+        {
+            throw new Exception("Booking option not found");
+        }
 
-        return null;
     }
 
     // Reduce capacity

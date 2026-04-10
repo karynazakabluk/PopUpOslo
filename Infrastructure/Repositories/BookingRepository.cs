@@ -1,5 +1,7 @@
 using System.Collections.Generic;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
+using PopUpOslo.Domain.Entities;
+using PopUpOslo.Domain.Enums;
 
 public class BookingRepository : BaseRepository
 {
@@ -16,7 +18,6 @@ public class BookingRepository : BaseRepository
         cmd.Parameters.AddWithValue("@u", booking.UserId);
         cmd.Parameters.AddWithValue("@e", booking.EventId);
         cmd.Parameters.AddWithValue("@o", booking.OptionId);
-        cmd.Parameters.AddWithValue("@p", booking.Price);
         cmd.Parameters.AddWithValue("@s", booking.Status);
 
         cmd.ExecuteNonQuery();
@@ -43,8 +44,13 @@ public class BookingRepository : BaseRepository
                 UserId = reader.GetInt32(1),
                 EventId = reader.GetInt32(2),
                 OptionId = reader.GetInt32(3),
-                Price = reader.GetDouble(4),
-                Status = reader.GetString(5)
+                Status = reader.IsDBNull(5)
+                    ? default
+                    : Enum.TryParse<BookingStatus>(
+                        reader.GetString(5),
+                        out var status)
+                        ? status
+                        : default
             });
         }
 
@@ -85,11 +91,20 @@ public class BookingRepository : BaseRepository
                 UserId = reader.GetInt32(1),
                 EventId = reader.GetInt32(2),
                 OptionId = reader.GetInt32(3),
-                Price = reader.GetDouble(4),
-                Status = reader.GetString(5)
+                Status = reader.IsDBNull(5)
+                    ? default
+                    : Enum.TryParse<BookingStatus>(
+                        reader.GetString(5),
+                        out var status)
+                        ? status
+                        : default
             };
         }
+        else
+        {
+            throw new Exception("Booking not found");
+        }
 
-        return null;
+       
     }
 }
