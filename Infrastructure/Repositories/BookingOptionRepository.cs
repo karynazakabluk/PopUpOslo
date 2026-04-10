@@ -1,4 +1,3 @@
-using PopUpOslo.Domain.Entities;
 using PopUpOslo.Domain.Enums;
 using Microsoft.Data.Sqlite;
 using System.Collections.Generic;
