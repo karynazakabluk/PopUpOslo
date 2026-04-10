@@ -27,10 +27,7 @@ public class AuthService
         var user = new User
         {
             Username = username,
-            PasswordHash = password,
-            UserId = _nextUserId++,
-            Username = username.Trim(),
-            PasswordHash = password.Trim(),
+            PasswordHash = password, // later replace with hashing
             Role = "User"
         };
 
@@ -44,10 +41,6 @@ public class AuthService
         {
             return null;
         }
-        return _users.FirstOrDefault(u =>
-            u.Username.Equals(username.Trim(), StringComparison.OrdinalIgnoreCase) &&
-            u.PasswordHash == password.Trim());
-    }
 
         username = username.Trim();
         password = password.Trim();
