@@ -64,8 +64,12 @@ public class ReviewRepository : BaseRepository
         {
             return MapReview(reader);
         }
+        else
+        {
+            throw new Exception("Review not found");
+        }
 
-        return null;
+
     }
 
     // Get average rating for event

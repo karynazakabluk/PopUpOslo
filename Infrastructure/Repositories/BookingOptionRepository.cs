@@ -2,6 +2,7 @@ using PopUpOslo.Domain.Entities;
 using PopUpOslo.Domain.Enums;
 using Microsoft.Data.Sqlite;
 using System.Collections.Generic;
+using PopUpOslo.Domain.Entities;
 
 namespace PopUpOslo.Infrastructure.Repositories;
 
@@ -78,8 +79,11 @@ public class BookingOptionRepository : BaseRepository
                 RemainingCapacity = reader.GetInt32(5)
             };
         }
+        else
+        {
+            throw new Exception("Booking option not found");
+        }
 
-        return null;
     }
 
     // Reduce capacity

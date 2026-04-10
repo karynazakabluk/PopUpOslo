@@ -41,8 +41,11 @@ public class UserRepository : BaseRepository
                 PasswordHash = reader.GetString(2)
             };
         }
+        else
+        {
+            throw new Exception("User not found");
+        }
 
-        return null;
     }
 
     // Validate login
@@ -68,8 +71,10 @@ public class UserRepository : BaseRepository
                 PasswordHash = reader.GetString(2)
             };
         }
-
-        return null;
+        else
+        {
+            throw new Exception("Invalid username or password");
+        }
     }
 
     //  Get user by ID
@@ -92,8 +97,10 @@ public class UserRepository : BaseRepository
                 PasswordHash = reader.GetString(2)
             };
         }
-
-        return null;
+        else
+        {
+            throw new Exception("User not found");
+        }
     }
 
     // Delete user

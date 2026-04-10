@@ -3,6 +3,10 @@ using PopUpOslo.Domain.Entities;
 using PopUpOslo.Domain.Enums;
 
 namespace PopUpOslo.Infrastructure.Repositories;
+using System.Collections.Generic;
+using Microsoft.Data.Sqlite;
+using PopUpOslo.Domain.Entities;
+using PopUpOslo.Domain.Enums;
 
 public class BookingRepository : BaseRepository
 {
@@ -75,8 +79,12 @@ public class BookingRepository : BaseRepository
         {
             return MapBooking(reader);
         }
+        else
+        {
+            throw new Exception("Booking not found");
+        }
 
-        return null;
+       
     }
 
     private Booking MapBooking(SqliteDataReader reader)

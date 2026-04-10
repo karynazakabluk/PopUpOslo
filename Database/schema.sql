@@ -77,13 +77,13 @@ CREATE TABLE IF NOT EXISTS Reviews (
 
 
 
-CREATE INDEX idx_events_datetime ON Events(DateTime);
-CREATE INDEX idx_events_category ON Events(Category);
-CREATE INDEX idx_events_type ON Events(Type);
+CREATE INDEX IF NOT EXISTS idx_events_datetime ON Events(DateTime);
+CREATE INDEX IF NOT EXISTS idx_events_category ON Events(Category);
+CREATE INDEX IF NOT EXISTS idx_events_type ON Events(Type);
 
-CREATE INDEX idx_bookings_user ON Bookings(UserId);
-CREATE INDEX idx_bookings_event ON Bookings(EventId);
+CREATE INDEX IF NOT EXISTS idx_bookings_user ON Bookings(UserId);
+CREATE INDEX IF NOT EXISTS idx_bookings_event ON Bookings(EventId);
 
-CREATE INDEX idx_reviews_event ON Reviews(EventId);
+CREATE INDEX IF NOT EXISTS idx_reviews_event ON Reviews(EventId);
 
 

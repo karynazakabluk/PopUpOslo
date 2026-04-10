@@ -3,6 +3,10 @@ using PopUpOslo.Domain.Entities;
 using PopUpOslo.Domain.Enums;
 
 namespace PopUpOslo.Infrastructure.Repositories;
+using System.Collections.Generic;
+using Microsoft.Data.Sqlite;
+using PopUpOslo.Domain.Entities;
+using PopUpOslo.Domain.Enums;
 
 public class EventRepository : BaseRepository
 {
@@ -62,8 +66,10 @@ public class EventRepository : BaseRepository
         {
             return MapEvent(reader);
         }
-
-        return null;
+        else
+        {
+            throw new Exception("Event not found");
+        }
     }
 
     public List<Event> GetEventsByOrganizer(int organizerId)
