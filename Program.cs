@@ -7,9 +7,17 @@ class Program
     static void Main(string[] args)
     {
         Batteries.Init();
+        bool seed = args.Contains("--seed");
+        if (seed)
+        {
+            Console.WriteLine(" Resetting database...");
 
-        DatabaseInitializer.Initialize();
-
+            if (File.Exists("Database/database.db"))
+            {
+                File.Delete("Database/database.db");
+            }
+        }
+        DatabaseInitializer.Initialize(seed);
         Console.WriteLine("Application started...");
         
         var app = new ApplicationRunner();
