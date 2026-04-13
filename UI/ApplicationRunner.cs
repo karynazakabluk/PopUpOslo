@@ -244,7 +244,7 @@ public class ApplicationRunner
         {
             double avgRating = _reviewService.GetAverageRating(ev.EventId);
 
-            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.Venue} | {ev.DateTime:g}");
+            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.Venue} | {ev.DateTime:g} | {ev.Status}");
 
             if (avgRating > 0)
             {
@@ -420,6 +420,15 @@ public class ApplicationRunner
             return;
         }
 
+		bool confirm = InputHandler.Confirm($"Do you want to book '{selected.Title}'");
+
+		if (!confirm)
+		{
+    		Menu.ShowMessage("Booking cancelled.");
+    		Menu.Pause();
+    		return;
+		}
+
         bool success = _bookingService.CreateBooking(_currentUserId, selected);
 		
         if (!success)
@@ -455,16 +464,18 @@ public class ApplicationRunner
         }
 
         Console.WriteLine();
-
-        bool cancelBooking = InputHandler.Confirm("Do you want to cancel a booking");
-
-        if (!cancelBooking)
-        {
-            Menu.Pause();
-            return;
-        }
+        
 
         int bookingId = InputHandler.ReadInt("Enter booking id: ");
+		bool confirmCancel = InputHandler.Confirm($"Are you sure you want to cancel booking #{bookingId}?");
+
+		if (!confirmCancel)
+		{
+    		Menu.ShowMessage("Cancellation aborted.");
+    		Menu.Pause();
+    		return;
+		}
+
         bool success = _bookingService.CancelBooking(bookingId, _currentUserId);
 
         if (!success)
