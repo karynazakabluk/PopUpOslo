@@ -108,12 +108,12 @@ public class ApplicationRunner
 
         if (!success)
         {
-            Menu.ShowError("Registration failed. Username may already exist");
+            Menu.ShowError("Registration failed. Username may already exist.");
             Menu.Pause();
             return;
         }
 
-        Menu.ShowSuccess($"Account for '{username}' created successfully");
+        Menu.ShowSuccess($"Account for '{username}' created successfully.");
   
     }
 
@@ -128,7 +128,7 @@ public class ApplicationRunner
 
         if (user == null)
         {
-            Menu.ShowError("Invalid username or password");
+            Menu.ShowError("Invalid username or password.");
             Menu.Pause();
             return;
         }
@@ -149,7 +149,7 @@ public class ApplicationRunner
 
         if (allEvents.Count == 0)
         {
-            Menu.ShowMessage("No events available");
+            Menu.ShowMessage("No events available.");
             Menu.Pause();
             return;
         }
@@ -235,8 +235,8 @@ public class ApplicationRunner
 
         if (results.Count == 0)
         {
-            Menu.ShowMessage("No matching events found");
-            Menu.Pause();
+            Menu.ShowMessage("No matching events found.");
+          
             return;
         }
 
@@ -254,11 +254,11 @@ public class ApplicationRunner
 
         Console.WriteLine();
 
-        bool viewDetails = InputHandler.Confirm("Do you want to view event details");
+        bool viewDetails = InputHandler.Confirm("View event details?");
 
         if (!viewDetails)
         {
-            Menu.Pause();
+           
             return;
         }
 
@@ -267,7 +267,7 @@ public class ApplicationRunner
 
         if (selected == null)
         {
-            Menu.ShowError("Event not found");
+            Menu.ShowError("Event not found.");
             Menu.Pause();
             return;
         }
@@ -315,7 +315,8 @@ public class ApplicationRunner
         }
 
         Console.WriteLine();
-        Menu.Pause();
+		Menu.Pause();
+       
     }
 
     private void HandleCreateEvent()
@@ -356,7 +357,7 @@ public class ApplicationRunner
 
 		_bookingOptionService.CreateDefaultOption(eventId);
 
-		Menu.ShowSuccess("Event created successfully");
+		Menu.ShowSuccess("Event created successfully.");
       
     }
 
@@ -368,7 +369,7 @@ public class ApplicationRunner
 
         if (myEvents.Count == 0)
         {
-            Menu.ShowMessage("You have not created any events yet");
+            Menu.ShowMessage("You have not created any events yet.");
             Menu.Pause();
             return;
         }
@@ -398,7 +399,7 @@ public class ApplicationRunner
 
         if (events.Count == 0)
         {
-            Menu.ShowMessage("No events available to book");
+            Menu.ShowMessage("No events available to book.");
             Menu.Pause();
             return;
         }
@@ -420,7 +421,7 @@ public class ApplicationRunner
             return;
         }
 
-		bool confirm = InputHandler.Confirm($"Do you want to book '{selected.Title}'");
+		bool confirm = InputHandler.Confirm($"Book '{selected.Title}'?");
 
 		if (!confirm)
 		{
@@ -433,7 +434,7 @@ public class ApplicationRunner
 		
         if (!success)
         {
-            Menu.ShowError("Booking could not be completed. You may have already booked this event, or no booking option is available.");
+            Menu.ShowError("Booking could not be completed. You may already have a booking for this event.");
     		Menu.Pause();
     		return;
         }
@@ -450,7 +451,7 @@ public class ApplicationRunner
 
         if (bookings.Count == 0)
         {
-            Menu.ShowMessage("You do not have any bookings yet");
+            Menu.ShowMessage("You do not have any bookings yet.");
             Menu.Pause();
             return;
         }
@@ -467,7 +468,7 @@ public class ApplicationRunner
         
 
         int bookingId = InputHandler.ReadInt("Enter booking id: ");
-		bool confirmCancel = InputHandler.Confirm($"Are you sure you want to cancel booking #{bookingId}?");
+		bool confirmCancel = InputHandler.Confirm($"Cancel booking #{bookingId}?");
 
 		if (!confirmCancel)
 		{
@@ -480,12 +481,12 @@ public class ApplicationRunner
 
         if (!success)
         {
-            Menu.ShowError("Booking not found or cannot be cancelled");
+            Menu.ShowError("Booking not found or cannot be cancelled.");
             Menu.Pause();
             return;
         }
 
-        Menu.ShowSuccess("Booking cancelled successfully");
+        Menu.ShowSuccess("Booking cancelled successfully.");
       
     }
 
@@ -499,7 +500,7 @@ public class ApplicationRunner
 
         if (bookings.Count == 0)
         {
-            Menu.ShowMessage("You need at least one booking to leave a review ");
+            Menu.ShowMessage("You need at least one booking to leave a review.");
             Menu.Pause();
             return;
         }
@@ -522,7 +523,7 @@ public class ApplicationRunner
 
         if (selected == null)
         {
-            Menu.ShowError("Event not found");
+            Menu.ShowError("Event not found.");
             Menu.Pause();
             return;
         }
@@ -531,7 +532,7 @@ public class ApplicationRunner
 
         if (!hasBooking)
         {
-            Menu.ShowError("You can only review events you booked");
+            Menu.ShowError("You can only review events you booked.");
             Menu.Pause();
             return;
         }
@@ -540,7 +541,7 @@ public class ApplicationRunner
 
         if (alreadyReviewed)
         {
-            Menu.ShowError("You have already reviewed this event");
+            Menu.ShowError("You have already reviewed this event.");
             Menu.Pause();
             return;
         }
@@ -552,18 +553,18 @@ public class ApplicationRunner
 
         if (!success)
         {
-            Menu.ShowError("Review could not be submitted. Please check your input and try again");
+            Menu.ShowError("Review could not be submitted. Please check your input and try again.");
             Menu.Pause();
             return;
         }
 
-        Menu.ShowSuccess("Review submitted successfully");
+        Menu.ShowSuccess("Review submitted successfully.");
         
     }
 
     private void HandleLogout()
     {
-        bool confirmLogout = InputHandler.Confirm("Are you sure you want to log out");
+        bool confirmLogout = InputHandler.Confirm("Log out?");
 
         if (!confirmLogout)
         {
@@ -574,13 +575,13 @@ public class ApplicationRunner
         _currentUsername = "Guest";
         _currentUserId = 0;
 
-        Menu.ShowSuccess("You have been logged out");
+        Menu.ShowSuccess("You have been logged out.");
         
     }
 
 	private void HandleExit()
     {
-        bool confirmExit = InputHandler.Confirm("Are you sure you want to exit");
+        bool confirmExit = InputHandler.Confirm("Exit application?");
 
         if (confirmExit)
         {
@@ -610,7 +611,7 @@ public class ApplicationRunner
 
     private void ShowInvalidOption()
     {
-        Menu.ShowError("Invalid option. Please try again");
+        Menu.ShowError("Invalid option. Please try again.");
         Menu.Pause();
     }
 }
