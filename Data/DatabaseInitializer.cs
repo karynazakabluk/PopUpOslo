@@ -9,7 +9,7 @@ namespace PopUpOslo.Data
         private static string dbPath = Path.Combine("Database", "database.db");
         private static string schemaPath = Path.Combine("Database", "schema.sql");
 
-        public static void Initialize()
+        public static void Initialize(bool seed = false)
         {
             Directory.CreateDirectory("Database");
 
@@ -37,11 +37,26 @@ namespace PopUpOslo.Data
                 var command = connection.CreateCommand();
                 command.CommandText = sql;
                 command.ExecuteNonQuery();
-
+                if (seed)
+                {
+                    SeedDatabase(connection);
+                }
                 Console.WriteLine(isNew
                     ? "Database created and initialized."
                     : "Database already exists. Schema ensured.");
+                
             }
+            
+            
+        }
+        
+        private static void SeedDatabase(SqliteConnection connection)
+        {
+            var seedSql = File.ReadAllText("Data/seed.sql");
+
+            using var command = connection.CreateCommand();
+            command.CommandText = seedSql;
+            command.ExecuteNonQuery();
         }
     }
 }
