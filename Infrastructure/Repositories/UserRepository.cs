@@ -1,12 +1,11 @@
 using PopUpOslo.Domain.Entities;
-using PopUpOslo.Domain.Enums;
 using Microsoft.Data.Sqlite;
 
 namespace PopUpOslo.Infrastructure.Repositories;
 
 public class UserRepository : BaseRepository
 {
-    //  Register User
+    // Register User
     public void AddUser(User user)
     {
         using var conn = GetOpenConnection();
@@ -21,8 +20,8 @@ public class UserRepository : BaseRepository
         cmd.ExecuteNonQuery();
     }
 
-    //  Get user by username (for login)
-    public User GetUserByUsername(string username)
+    // Get user by username
+    public User? GetUserByUsername(string username)
     {
         using var conn = GetOpenConnection();
 
@@ -41,15 +40,12 @@ public class UserRepository : BaseRepository
                 PasswordHash = reader.GetString(2)
             };
         }
-        else
-        {
-            throw new Exception("User not found");
-        }
 
+        return null; 
     }
 
     // Validate login
-    public User ValidateUser(string username, string passwordHash)
+    public User? ValidateUser(string username, string passwordHash)
     {
         using var conn = GetOpenConnection();
 
@@ -71,14 +67,12 @@ public class UserRepository : BaseRepository
                 PasswordHash = reader.GetString(2)
             };
         }
-        else
-        {
-            throw new Exception("Invalid username or password");
-        }
+
+        return null; 
     }
 
-    //  Get user by ID
-    public User GetUserById(int userId)
+    // Get user by ID
+    public User? GetUserById(int userId)
     {
         using var conn = GetOpenConnection();
 
@@ -97,10 +91,8 @@ public class UserRepository : BaseRepository
                 PasswordHash = reader.GetString(2)
             };
         }
-        else
-        {
-            throw new Exception("User not found");
-        }
+
+        return null; 
     }
 
     // Delete user
