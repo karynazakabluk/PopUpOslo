@@ -114,7 +114,7 @@ public class ApplicationRunner
         }
 
         Menu.ShowSuccess($"Account for '{username}' created successfully");
-        Menu.Pause();
+  
     }
 
     private void HandleLogin()
@@ -138,7 +138,7 @@ public class ApplicationRunner
         _currentUserId = user.UserId;
 
         Menu.ShowSuccess($"Welcome, {user.Username}!");
-        Menu.Pause();
+        
     }
 
     private void HandleBrowseEvents()
@@ -357,7 +357,7 @@ public class ApplicationRunner
 		_bookingOptionService.CreateDefaultOption(eventId);
 
 		Menu.ShowSuccess("Event created successfully");
-        Menu.Pause();
+      
     }
 
     private void HandleViewMyEvents()
@@ -425,7 +425,7 @@ public class ApplicationRunner
 		if (!confirm)
 		{
     		Menu.ShowMessage("Booking cancelled.");
-    		Menu.Pause();
+    	
     		return;
 		}
 
@@ -439,7 +439,7 @@ public class ApplicationRunner
         }
 
         Menu.ShowSuccess($"Booked: {selected.Title}");
-        Menu.Pause();
+       
     }
 
     private void HandleMyBookings()
@@ -472,7 +472,7 @@ public class ApplicationRunner
 		if (!confirmCancel)
 		{
     		Menu.ShowMessage("Cancellation aborted.");
-    		Menu.Pause();
+    
     		return;
 		}
 
@@ -486,7 +486,7 @@ public class ApplicationRunner
         }
 
         Menu.ShowSuccess("Booking cancelled successfully");
-        Menu.Pause();
+      
     }
 
     private void HandleLeaveReview()
@@ -558,7 +558,7 @@ public class ApplicationRunner
         }
 
         Menu.ShowSuccess("Review submitted successfully");
-        Menu.Pause();
+        
     }
 
     private void HandleLogout()
@@ -575,7 +575,7 @@ public class ApplicationRunner
         _currentUserId = 0;
 
         Menu.ShowSuccess("You have been logged out");
-        Menu.Pause();
+        
     }
 
 	private void HandleExit()
