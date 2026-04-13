@@ -17,7 +17,7 @@ class Program
                 File.Delete("Database/database.db");
             }
         }
-        DatabaseInitializer.Initialize(seed:true);
+        DatabaseInitializer.Initialize(seed);
         Console.WriteLine("Application started...");
         
         var app = new ApplicationRunner();
