@@ -108,12 +108,12 @@ public class ApplicationRunner
 
         if (!success)
         {
-            Menu.ShowError("Registration failed. Username may already exist.");
+            Menu.ShowError("Registration failed. Username may already exist");
             Menu.Pause();
             return;
         }
 
-        Menu.ShowSuccess($"Account for '{username}' created successfully.");
+        Menu.ShowSuccess($"Account for '{username}' created successfully");
         Menu.Pause();
     }
 
@@ -128,7 +128,7 @@ public class ApplicationRunner
 
         if (user == null)
         {
-            Menu.ShowError("Invalid username or password.");
+            Menu.ShowError("Invalid username or password");
             Menu.Pause();
             return;
         }
@@ -149,7 +149,7 @@ public class ApplicationRunner
 
         if (allEvents.Count == 0)
         {
-            Menu.ShowMessage("No events available.");
+            Menu.ShowMessage("No events available");
             Menu.Pause();
             return;
         }
@@ -183,7 +183,7 @@ public class ApplicationRunner
 
         if (choice < 0 || choice > 4)
         {
-            Menu.ShowError("Invalid option.");
+            Menu.ShowError("Invalid option");
             Menu.Pause();
             return;
         }
@@ -209,14 +209,7 @@ public class ApplicationRunner
 
         int categoryChoice = InputHandler.ReadIntInRange("Choose category (1-5): ", 1, 5);
 
-        EventCategory selectedCategory = categoryChoice switch
-        {
-            1 => EventCategory.Food,
-            2 => EventCategory.Networking,
-            3 => EventCategory.Education,
-            4 => EventCategory.Culture,
-            _ => EventCategory.Other
-        };
+        EventCategory selectedCategory = MapCategory(categoryChoice);
 
         return _searchService.FilterByCategory(allEvents, selectedCategory);
     }
@@ -230,9 +223,7 @@ public class ApplicationRunner
 
         int typeChoice = InputHandler.ReadIntInRange("Choose type (1-2): ", 1, 2);
 
-        EventType selectedType = typeChoice == 1
-            ? EventType.Workshop
-            : EventType.Dining;
+        EventType selectedType = MapType(typeChoice);
 
         return _searchService.FilterByType(allEvents, selectedType);
     }
@@ -244,7 +235,7 @@ public class ApplicationRunner
 
         if (results.Count == 0)
         {
-            Menu.ShowMessage("No matching events found.");
+            Menu.ShowMessage("No matching events found");
             Menu.Pause();
             return;
         }
@@ -276,7 +267,7 @@ public class ApplicationRunner
 
         if (selected == null)
         {
-            Menu.ShowError("Event not found.");
+            Menu.ShowError("Event not found");
             Menu.Pause();
             return;
         }
@@ -296,10 +287,11 @@ public class ApplicationRunner
         Console.WriteLine($"Status: {selected.Status}");
 
         double avgRating = _reviewService.GetAverageRating(selected.EventId);
-        if (avgRating > 0)
-        {
-            Console.WriteLine($"Average rating: {avgRating:F1}/5");
-        }
+
+        Console.WriteLine(
+    		avgRating > 0
+        		? $"Average rating: {avgRating:F1}/5"
+        		: "Average rating: No ratings yet");
 
         Console.WriteLine();
         Console.WriteLine("Reviews");
@@ -350,16 +342,8 @@ public class ApplicationRunner
         Console.WriteLine("2. Dining");
         int typeChoice = InputHandler.ReadIntInRange("Choose type (1-2): ", 1, 2);
 
-        EventCategory category = categoryChoice switch
-        {
-            1 => EventCategory.Food,
-            2 => EventCategory.Networking,
-            3 => EventCategory.Education,
-            4 => EventCategory.Culture,
-            _ => EventCategory.Other
-        };
-
-        EventType type = typeChoice == 1 ? EventType.Workshop : EventType.Dining;
+        EventCategory category = MapCategory(categoryChoice);
+		EventType type = MapType(typeChoice);
 
         int eventId = _eventService.CreateEvent(
     		title,
@@ -384,7 +368,7 @@ public class ApplicationRunner
 
         if (myEvents.Count == 0)
         {
-            Menu.ShowMessage("You have not created any events yet.");
+            Menu.ShowMessage("You have not created any events yet");
             Menu.Pause();
             return;
         }
@@ -393,12 +377,13 @@ public class ApplicationRunner
         {
             double avgRating = _reviewService.GetAverageRating(ev.EventId);
 
-            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.DateTime:g}");
+            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.Venue} | {ev.DateTime:g} | {ev.Status}");
 
             if (avgRating > 0)
-            {
-                Console.WriteLine($"   Average rating: {avgRating:F1}/5");
-            }
+    		{
+        		Console.WriteLine($"   Average rating: {avgRating:F1}/5");
+    		}
+
         }
 
         Console.WriteLine();
@@ -413,7 +398,7 @@ public class ApplicationRunner
 
         if (events.Count == 0)
         {
-            Menu.ShowMessage("No events available to book.");
+            Menu.ShowMessage("No events available to book");
             Menu.Pause();
             return;
         }
@@ -436,12 +421,12 @@ public class ApplicationRunner
         }
 
         bool success = _bookingService.CreateBooking(_currentUserId, selected);
-
+		
         if (!success)
         {
-            Menu.ShowError("You already booked this event.");
-            Menu.Pause();
-            return;
+            Menu.ShowError("Booking could not be completed. You may have already booked this event, or no booking option is available.");
+    		Menu.Pause();
+    		return;
         }
 
         Menu.ShowSuccess($"Booked: {selected.Title}");
@@ -456,7 +441,7 @@ public class ApplicationRunner
 
         if (bookings.Count == 0)
         {
-            Menu.ShowMessage("You do not have any bookings yet.");
+            Menu.ShowMessage("You do not have any bookings yet");
             Menu.Pause();
             return;
         }
@@ -484,12 +469,12 @@ public class ApplicationRunner
 
         if (!success)
         {
-            Menu.ShowError("Booking not found or cannot be cancelled.");
+            Menu.ShowError("Booking not found or cannot be cancelled");
             Menu.Pause();
             return;
         }
 
-        Menu.ShowSuccess("Booking cancelled successfully.");
+        Menu.ShowSuccess("Booking cancelled successfully");
         Menu.Pause();
     }
 
@@ -503,7 +488,7 @@ public class ApplicationRunner
 
         if (bookings.Count == 0)
         {
-            Menu.ShowMessage("You need at least one booking to leave a review.");
+            Menu.ShowMessage("You need at least one booking to leave a review ");
             Menu.Pause();
             return;
         }
@@ -526,7 +511,7 @@ public class ApplicationRunner
 
         if (selected == null)
         {
-            Menu.ShowError("Event not found.");
+            Menu.ShowError("Event not found");
             Menu.Pause();
             return;
         }
@@ -535,7 +520,7 @@ public class ApplicationRunner
 
         if (!hasBooking)
         {
-            Menu.ShowError("You can only review events you booked.");
+            Menu.ShowError("You can only review events you booked");
             Menu.Pause();
             return;
         }
@@ -544,7 +529,7 @@ public class ApplicationRunner
 
         if (alreadyReviewed)
         {
-            Menu.ShowError("You have already reviewed this event.");
+            Menu.ShowError("You have already reviewed this event");
             Menu.Pause();
             return;
         }
@@ -556,12 +541,12 @@ public class ApplicationRunner
 
         if (!success)
         {
-            Menu.ShowError("Review could not be submitted.");
+            Menu.ShowError("Review could not be submitted. Please check your input and try again");
             Menu.Pause();
             return;
         }
 
-        Menu.ShowSuccess("Review submitted successfully.");
+        Menu.ShowSuccess("Review submitted successfully");
         Menu.Pause();
     }
 
@@ -578,9 +563,11 @@ public class ApplicationRunner
         _currentUsername = "Guest";
         _currentUserId = 0;
 
-        Menu.ShowSuccess("You have been logged out.");
+        Menu.ShowSuccess("You have been logged out");
         Menu.Pause();
-    }private void HandleExit()
+    }
+
+	private void HandleExit()
     {
         bool confirmExit = InputHandler.Confirm("Are you sure you want to exit");
 
@@ -590,10 +577,29 @@ public class ApplicationRunner
             _isRunning = false;
         }
     }
+	
+	private EventCategory MapCategory(int categoryChoice)
+	{
+    	return categoryChoice switch
+    	{
+        	1 => EventCategory.Food,
+        	2 => EventCategory.Networking,
+        	3 => EventCategory.Education,
+        	4 => EventCategory.Culture,
+        	_ => EventCategory.Other
+    	};
+	}
+
+	private EventType MapType(int typeChoice)
+	{
+    	return typeChoice == 1
+        	? EventType.Workshop
+        	: EventType.Dining;
+	}
 
     private void ShowInvalidOption()
     {
-        Menu.ShowError("Invalid option. Please try again.");
+        Menu.ShowError("Invalid option. Please try again");
         Menu.Pause();
     }
 }
