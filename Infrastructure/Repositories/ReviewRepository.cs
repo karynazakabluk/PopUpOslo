@@ -47,7 +47,7 @@ public class ReviewRepository : BaseRepository
     }
 
     // Get review by user + event (important rule: one review per booking)
-    public Review GetReviewByUserAndEvent(int userId, int eventId)
+    public Review? GetReviewByUserAndEvent(int userId, int eventId)
     {
         using var conn = GetOpenConnection();
 
@@ -61,13 +61,11 @@ public class ReviewRepository : BaseRepository
         using var reader = cmd.ExecuteReader();
 
         if (reader.Read())
-        {
-            return MapReview(reader);
-        }
-        else
-        {
-            throw new Exception("Review not found");
-        }
+		{
+    		return MapReview(reader);
+		}
+
+		return null;
 
 
     }

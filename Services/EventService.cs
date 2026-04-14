@@ -46,22 +46,7 @@ public class EventService
     {
         return _eventRepository.GetEventById(eventId);
     }
-
-    public List<Event> SearchEvents(string keyword)
-    {
-        return _eventRepository.SearchEvents(keyword);
-    }
-
-    public List<Event> FilterByCategory(EventCategory category)
-    {
-        return _eventRepository.FilterByCategory(category.ToString());
-    }
-
-    public List<Event> FilterByType(EventType type)
-    {
-        return _eventRepository.FilterByType(type.ToString());
-    }
-
+  
     public void CancelEvent(int eventId)
     {
         _eventRepository.CancelEvent(eventId);
