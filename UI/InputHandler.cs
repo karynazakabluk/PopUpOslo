@@ -102,6 +102,37 @@ public static class InputHandler
             Console.WriteLine();
         }
     }
+    
+    public static string ReadOptionalString(string prompt)
+    {
+        Console.Write(prompt);
+        return Console.ReadLine() ?? string.Empty;
+    }
+
+    public static DateTime? ReadOptionalDateTime(string prompt)
+    {
+        Console.Write(prompt);
+        string? input = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(input))
+        {
+            return null;
+        }
+
+        while (!DateTime.TryParse(input, out DateTime parsedDate))
+        {
+            Console.Write("Invalid date format. Try again or press Enter to keep current value: ");
+            input = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                return null;
+            }
+        }
+
+        return DateTime.Parse(input);
+    }
+    
 
     public static bool Confirm(string prompt)
     {
