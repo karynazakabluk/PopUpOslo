@@ -421,7 +421,7 @@ public class ApplicationRunner
         return;
     }
 
-    // 🔄 ALWAYS LOAD FRESH DATA FROM DATABASE
+    //  ALWAYS LOAD FRESH DATA FROM DATABASE
     var options = _bookingOptionService.GetOptionsByEvent(eventId);
 
     if (options.Count == 0)
@@ -448,7 +448,7 @@ public class ApplicationRunner
 
     int selectedOptionId = InputHandler.ReadInt("Select ticket option id: ");
 
-    // 🧠 GET OPTION AGAIN (ENSURE FRESH VALUE)
+    //  GET OPTION AGAIN 
     var selectedOption = _bookingOptionService.GetById(selectedOptionId);
 
     if (selectedOption == null)
@@ -488,7 +488,7 @@ public class ApplicationRunner
 
     Menu.ShowSuccess($"Booked: {selectedEvent.Title}");
 
-    // 🔄 REFRESH AFTER BOOKING (IMPORTANT FIX)
+    //  REFRESH AFTER BOOKING
     var updatedOptions = _bookingOptionService.GetOptionsByEvent(eventId);
 
     Console.WriteLine();
