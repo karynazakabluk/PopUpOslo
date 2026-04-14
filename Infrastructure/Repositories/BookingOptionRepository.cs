@@ -87,15 +87,17 @@ public class BookingOptionRepository : BaseRepository
 
         var cmd = conn.CreateCommand();
         cmd.CommandText = @"
-            UPDATE BookingOptions 
-            SET RemainingCapacity = RemainingCapacity - 1 
-            WHERE OptionId = @id AND RemainingCapacity > 0";
+        UPDATE BookingOptions 
+        SET RemainingCapacity = RemainingCapacity - 1
+        WHERE OptionId = @id";
 
         cmd.Parameters.AddWithValue("@id", optionId);
 
-        cmd.ExecuteNonQuery();
-    }
+        int rows = cmd.ExecuteNonQuery();
 
+        Console.WriteLine($"ReduceCapacity rows affected: {rows}");
+    }
+    
     // Increase capacity (FIXED → prevent overflow)
     public void IncreaseCapacity(int optionId)
     {

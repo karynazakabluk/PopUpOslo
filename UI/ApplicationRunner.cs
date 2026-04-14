@@ -392,81 +392,118 @@ public class ApplicationRunner
     }
 
     private void HandleBookEvent()
+{
+    Menu.ShowSectionTitle("Book Event");
+
+    var events = _eventService.GetAllEvents();
+
+    if (events.Count == 0)
     {
-        Menu.ShowSectionTitle("Book Event");
-
-        var events = _eventService.GetAllEvents();
-
-        if (events.Count == 0)
-        {
-            Menu.ShowMessage("No events available to book.");
-            Menu.Pause();
-            return;
-        }
-
-        foreach (var ev in events)
-        {
-            Console.WriteLine($"{ev.EventId}. {ev.Title}");
-        }
-
-        Console.WriteLine();
-
-        int eventId = InputHandler.ReadInt("Enter event id: ");
-        Event? selectedEvent = _eventService.GetEventById(eventId);
-
-        if (selectedEvent == null)
-        {
-            Menu.ShowError("Event not found.");
-            Menu.Pause();
-            return;
-        }
-
-        // Get ticket options (VIP / Standard etc.)
-        var options = _bookingOptionService.GetOptionsByEvent(eventId);
-
-        if (options.Count == 0)
-        {
-            Menu.ShowError("No ticket options available for this event.");
-            Menu.Pause();
-            return;
-        }
-
-        Console.WriteLine();
-        Console.WriteLine("Ticket Options:");
-        Console.WriteLine("--------------------------------");
-
-        foreach (var o in options)
-        {
-            Console.WriteLine($"{o.OptionId}. {o.Name} - {o.Price} NOK (Left: {o.RemainingCapacity})");
-        }
-
-        Console.WriteLine();
-
-        int selectedOptionId = InputHandler.ReadInt("Select ticket option id: ");
-
-        bool confirm = InputHandler.Confirm($"Book '{selectedEvent.Title}'?");
-
-        if (!confirm)
-        {
-            Menu.ShowMessage("Booking cancelled.");
-            return;
-        }
-
-        bool success = _bookingService.CreateBooking(
-            _currentUserId,
-            selectedEvent.EventId,
-            selectedOptionId
-        );
-
-        if (!success)
-        {
-            Menu.ShowError("Booking failed. You may already have a booking or it is sold out.");
-            Menu.Pause();
-            return;
-        }
-
-        Menu.ShowSuccess($"Booked: {selectedEvent.Title}");
+        Menu.ShowMessage("No events available to book.");
+        Menu.Pause();
+        return;
     }
+
+    foreach (var ev in events)
+    {
+        Console.WriteLine($"{ev.EventId}. {ev.Title}");
+    }
+
+    Console.WriteLine();
+
+    int eventId = InputHandler.ReadInt("Enter event id: ");
+    Event? selectedEvent = _eventService.GetEventById(eventId);
+
+    if (selectedEvent == null)
+    {
+        Menu.ShowError("Event not found.");
+        Menu.Pause();
+        return;
+    }
+
+    // 🔄 ALWAYS LOAD FRESH DATA FROM DATABASE
+    var options = _bookingOptionService.GetOptionsByEvent(eventId);
+
+    if (options.Count == 0)
+    {
+        Menu.ShowError("No ticket options available for this event.");
+        Menu.Pause();
+        return;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("Ticket Options:");
+    Console.WriteLine("--------------------------------");
+
+    foreach (var o in options)
+    {
+        string status = o.RemainingCapacity == 0
+            ? "SOLD OUT"
+            : $"Left: {o.RemainingCapacity}";
+
+        Console.WriteLine($"{o.OptionId}. {o.Name} - {o.Price} NOK ({status})");
+    }
+
+    Console.WriteLine();
+
+    int selectedOptionId = InputHandler.ReadInt("Select ticket option id: ");
+
+    // 🧠 GET OPTION AGAIN (ENSURE FRESH VALUE)
+    var selectedOption = _bookingOptionService.GetById(selectedOptionId);
+
+    if (selectedOption == null)
+    {
+        Menu.ShowError("Invalid ticket option.");
+        Menu.Pause();
+        return;
+    }
+
+    if (selectedOption.RemainingCapacity <= 0)
+    {
+        Menu.ShowError("This ticket is SOLD OUT.");
+        Menu.Pause();
+        return;
+    }
+
+    bool confirm = InputHandler.Confirm($"Book '{selectedEvent.Title}'?");
+
+    if (!confirm)
+    {
+        Menu.ShowMessage("Booking cancelled.");
+        return;
+    }
+
+    bool success = _bookingService.CreateBooking(
+        _currentUserId,
+        selectedEvent.EventId,
+        selectedOptionId
+    );
+
+    if (!success)
+    {
+        Menu.ShowError("Booking failed. You may already have a booking or it is sold out.");
+        Menu.Pause();
+        return;
+    }
+
+    Menu.ShowSuccess($"Booked: {selectedEvent.Title}");
+
+    // 🔄 REFRESH AFTER BOOKING (IMPORTANT FIX)
+    var updatedOptions = _bookingOptionService.GetOptionsByEvent(eventId);
+
+    Console.WriteLine();
+    Console.WriteLine("Updated Ticket Status:");
+    Console.WriteLine("--------------------------------");
+
+    foreach (var o in updatedOptions)
+    {
+        string status = o.RemainingCapacity == 0
+            ? "SOLD OUT"
+            : $"Left: {o.RemainingCapacity}";
+
+        Console.WriteLine($"{o.OptionId}. {o.Name} - {o.Price} NOK ({status})");
+    }
+}
 
     private void HandleMyBookings()
     {
