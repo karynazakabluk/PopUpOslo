@@ -52,8 +52,11 @@ public class EventService
         _eventRepository.CancelEvent(eventId);
     }
 
-    public void UpdateEvent(Event ev)
-    {
-        _eventRepository.UpdateEvent(ev);
-    }
+
+	public void UpdateEvent(Event updatedEvent)
+	{
+    	_eventRepository.UpdateEvent(updatedEvent);
+	}
+
+
 }

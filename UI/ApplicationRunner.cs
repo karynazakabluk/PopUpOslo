@@ -1,6 +1,7 @@
 using PopUpOslo.Domain.Entities;
 using PopUpOslo.Domain.Enums;
 using PopUpOslo.Services;
+using System.Linq;
 
 namespace PopUpOslo.UI;
 
@@ -19,19 +20,26 @@ public class ApplicationRunner
     private readonly BookingOptionService _bookingOptionService = new();
 
     public void Run()
-    {
-        while (_isRunning)
-        {
-            if (_isLoggedIn)
-            {
-                RunUserMenu();
-            }
-            else
-            {
-                RunGuestMenu();
-            }
-        }
-    }
+	{
+    	while (_isRunning)
+    	{
+        	if (_isLoggedIn)
+        	{
+            	if (IsAdmin())
+            	{
+                	RunAdminMenu();
+            	}
+            	else
+            	{
+                	RunUserMenu();
+            	}
+        	}
+        	else
+        	{
+            	RunGuestMenu();
+        	}
+    	}
+	}
 
     private void RunGuestMenu()
     {
@@ -96,6 +104,60 @@ public class ApplicationRunner
                 break;
         }
     }
+	private void RunAdminMenu()
+	{
+    	Menu.ShowSectionTitle($"Admin Menu - {_currentUsername}");
+
+    	Console.WriteLine("1. Create event");
+		Console.WriteLine("2. View my events");
+		Console.WriteLine("3. Browse events");
+		Console.WriteLine("4. View all events");
+		Console.WriteLine("5. View event details");
+		Console.WriteLine("6. Edit event");
+		Console.WriteLine("7. Change event status");
+		Console.WriteLine("8. View events by status");
+		Console.WriteLine("0. Log out");
+    	Console.WriteLine();
+
+    	int choice = InputHandler.ReadInt("Choose an option: ");
+    	Console.WriteLine();
+
+    	switch (choice)
+		{
+    		case 1:
+        		HandleCreateEvent();
+        		break;
+    		case 2:
+        		HandleViewMyEvents();
+        		break;
+    		case 3:
+        		HandleBrowseEvents();
+        		break;
+    		case 4:
+        		HandleViewAllEventsAdmin();
+        		break;
+			case 5:
+        		HandleViewEventDetailsAdmin();
+        		break;
+			case 6:
+        		HandleEditEvent();
+        		break;
+    		case 7:
+        		HandleChangeEventStatus();
+        		break;
+			case 8:
+        		HandleViewEventsByStatus();
+        		break;
+    		case 0:
+        		HandleLogout();
+        		break;
+    		default:
+        		ShowInvalidOption();
+        		break;
+		}
+	}
+
+
 
     private void HandleRegister()
     {
@@ -391,6 +453,222 @@ public class ApplicationRunner
         Menu.Pause();
     }
 
+	private void HandleViewEventDetailsAdmin()
+	{
+    	Menu.ShowSectionTitle("Event Details");
+
+    	var events = _eventService.GetAllEvents();
+
+    	if (events.Count == 0)
+    	{
+        	Menu.ShowMessage("No events available.");
+        	Menu.Pause();
+        	return;
+    	}
+
+    	foreach (var ev in events)
+    	{
+        	Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.DateTime:g} | Organizer: {ev.OrganizerId} | {ev.Status}");
+    	}
+
+    	Console.WriteLine();
+
+    	int eventId = InputHandler.ReadInt("Enter event id: ");
+    	Event? selected = _eventService.GetEventById(eventId);
+
+    	if (selected == null)
+    	{
+        	Menu.ShowError("Event not found.");
+        	Menu.Pause();
+        	return;
+    	}
+
+    	DisplayEventDetails(selected);
+	}
+	
+	private void HandleEditEvent()
+	{
+    	Menu.ShowSectionTitle("Edit Event");
+
+    	var events = _eventService.GetAllEvents();
+
+    	if (events.Count == 0)
+    	{
+        	Menu.ShowMessage("No events available.");
+        	Menu.Pause();
+        	return;
+    	}
+
+    	foreach (var ev in events)
+    	{
+        	Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.DateTime:g} | {ev.Status}");
+    	}
+
+    	Console.WriteLine();
+
+    	int eventId = InputHandler.ReadInt("Enter event id: ");
+    	Event? selected = _eventService.GetEventById(eventId);
+
+    	if (selected == null)
+    	{
+        	Menu.ShowError("Event not found.");
+        	Menu.Pause();
+        	return;
+    	}
+
+		Console.WriteLine("Leave fields empty to keep current values.");
+		Console.WriteLine();
+    	//  
+    	string newTitle = InputHandler.ReadOptionalString($"Title ({selected.Title}): ");
+    	string newDescription = InputHandler.ReadOptionalString($"Description ({selected.Description}): ");
+    	string newVenue = InputHandler.ReadOptionalString($"Venue ({selected.Venue}): ");
+
+    	DateTime? newDate = InputHandler.ReadOptionalDateTime(
+    $"Date and time ({selected.DateTime:g}, e.g. 2026-07-15 18:00): ");
+
+    	// hvis ikke noe ble skrevet
+    	selected.Title = string.IsNullOrWhiteSpace(newTitle) ? selected.Title : newTitle;
+    	selected.Description = string.IsNullOrWhiteSpace(newDescription) ? selected.Description : newDescription;
+    	selected.Venue = string.IsNullOrWhiteSpace(newVenue) ? selected.Venue : newVenue;
+    	selected.DateTime = newDate ?? selected.DateTime;
+
+    	bool confirm = InputHandler.Confirm("Save changes?");
+
+    	if (!confirm)
+    	{
+        	Menu.ShowMessage("Edit cancelled.");
+        	return;
+    	}
+
+    	_eventService.UpdateEvent(selected);
+
+    	Menu.ShowSuccess("Event updated successfully.");
+	}
+	private void HandleChangeEventStatus()
+	{
+    	Menu.ShowSectionTitle("Change Event Status");
+
+    	var events = _eventService.GetAllEvents();
+
+    	if (events.Count == 0)
+    	{
+        	Menu.ShowMessage("No events available.");
+        	Menu.Pause();
+        	return;
+    	}
+
+    	foreach (var ev in events)
+    	{
+        	Console.WriteLine(
+            	$"{ev.EventId}. {ev.Title} | {ev.DateTime:g} | Organizer: {ev.OrganizerId} | {ev.Status}");
+    	}
+
+    	Console.WriteLine();
+
+    	int eventId = InputHandler.ReadInt("Enter event id: ");
+    	Event? selected = _eventService.GetEventById(eventId);
+
+    	if (selected == null)
+    	{
+        	Menu.ShowError("Event not found.");
+        	Menu.Pause();
+        	return;
+    	}
+
+    	Console.WriteLine("Choose new status:");
+    	Console.WriteLine("1. Upcoming");
+    	Console.WriteLine("2. Cancelled");
+    	Console.WriteLine();
+
+    	int statusChoice = InputHandler.ReadIntInRange("Choose status (1-2): ", 1, 2);
+
+    	EventStatus newStatus = statusChoice == 1
+        	? EventStatus.Upcoming
+        	: EventStatus.Cancelled;
+
+    	if (selected.Status == newStatus)
+    	{
+        	Menu.ShowMessage("This event already has that status.");
+        	Menu.Pause();
+        	return;
+    	}
+
+    	bool confirm = InputHandler.Confirm(
+        	$"Change status of '{selected.Title}' to {newStatus}?");
+
+    	if (!confirm)
+    	{
+        	Menu.ShowMessage("Status update aborted.");
+        	return;
+    	}
+
+    	selected.Status = newStatus;
+    	_eventService.UpdateEvent(selected);
+
+    	Menu.ShowSuccess("Event status updated successfully.");
+	}
+
+	private void HandleViewEventsByStatus()
+	{
+    	Menu.ShowSectionTitle("Filter Events by Status");
+
+    	Console.WriteLine("1. Upcoming");
+    	Console.WriteLine("2. Cancelled");
+    	Console.WriteLine();
+
+    	int choice = InputHandler.ReadIntInRange("Choose status: ", 1, 2);
+
+    	EventStatus selectedStatus = choice == 1
+        	? EventStatus.Upcoming
+        	: EventStatus.Cancelled;
+
+    	var events = _eventService.GetAllEvents()
+        	.Where(e => e.Status == selectedStatus)
+        	.ToList();
+
+    	if (events.Count == 0)
+    	{
+        	Menu.ShowMessage("No events with this status.");
+        	Menu.Pause();
+        	return;
+    	}
+
+    	foreach (var ev in events)
+    	{
+        	Console.WriteLine(
+            	$"{ev.EventId}. {ev.Title} | {ev.DateTime:g} | {ev.Status}");
+    	}
+
+    	Console.WriteLine();
+    	Menu.Pause();
+	}
+
+
+
+	private void HandleViewAllEventsAdmin()
+	{
+    	Menu.ShowSectionTitle("All Events");
+
+    	var events = _eventService.GetAllEvents();
+
+    	if (events.Count == 0)
+    	{
+        	Menu.ShowMessage("No events available.");
+        	Menu.Pause();
+        	return;
+    	}
+
+    	foreach (var ev in events)
+    	{
+        	Console.WriteLine(
+            	$"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.DateTime:g} | Organizer: {ev.OrganizerId} | {ev.Status}");
+    	}
+
+    	Console.WriteLine();
+    	Menu.Pause();
+	}
+
+
     private void HandleBookEvent()
 {
     Menu.ShowSectionTitle("Book Event");
@@ -670,6 +948,11 @@ public class ApplicationRunner
         	? EventType.Workshop
         	: EventType.Dining;
 	}
+	private bool IsAdmin()
+	{
+    	return _currentUserId == 1;
+	}
+
 
     private void ShowInvalidOption()
     {
