@@ -22,7 +22,7 @@ public class BookingOptionService
         _bookingOptionRepository.AddOption(option);
     }
 
-    // ✅ FIX: ADD THIS METHOD (USED BY UI)
+   
     public List<BookingOption> GetOptionsByEvent(int eventId)
     {
         return _bookingOptionRepository.GetOptionsByEvent(eventId);
