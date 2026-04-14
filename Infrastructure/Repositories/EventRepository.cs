@@ -92,34 +92,7 @@ public class EventRepository : BaseRepository
         return list;
     }
 
-    public void UpdateEvent(Event ev)
-    {
-        using var conn = GetOpenConnection();
-        using var cmd = conn.CreateCommand();
-
-        cmd.CommandText = @"
-            UPDATE Events SET
-                Title = @t,
-                Description = @d,
-                Category = @c,
-                Type = @ty,
-                DateTime = @dt,
-                Venue = @v,
-                Status = @s
-            WHERE EventId = @id;";
-
-        cmd.Parameters.AddWithValue("@t", ev.Title);
-        cmd.Parameters.AddWithValue("@d", ev.Description);
-        cmd.Parameters.AddWithValue("@c", ev.Category.ToString());
-        cmd.Parameters.AddWithValue("@ty", ev.Type.ToString());
-        cmd.Parameters.AddWithValue("@dt", ev.DateTime.ToString("s"));
-        cmd.Parameters.AddWithValue("@v", ev.Venue);
-        cmd.Parameters.AddWithValue("@s", ev.Status.ToString());
-        cmd.Parameters.AddWithValue("@id", ev.EventId);
-
-        cmd.ExecuteNonQuery();
-    }
-
+    
     public void CancelEvent(int eventId)
     {
         using var conn = GetOpenConnection();
@@ -134,6 +107,31 @@ public class EventRepository : BaseRepository
 
         cmd.ExecuteNonQuery();
     }
+	
+	public void UpdateEvent(Event updatedEvent)
+	{
+    	using var conn = GetOpenConnection();
+    	using var cmd = conn.CreateCommand();
+
+    	cmd.CommandText = @"
+            UPDATE Events
+            SET Title = @t,
+                Description = @d,
+                Venue = @v,
+                DateTime = @dt,
+                Status=@s
+            WHERE EventId = @id;";
+
+    	cmd.Parameters.AddWithValue("@t", updatedEvent.Title);
+    	cmd.Parameters.AddWithValue("@d", updatedEvent.Description);
+    	cmd.Parameters.AddWithValue("@v", updatedEvent.Venue);
+    	cmd.Parameters.AddWithValue("@dt", updatedEvent.DateTime.ToString("s"));
+		cmd.Parameters.AddWithValue("@s", updatedEvent.Status.ToString());
+    	cmd.Parameters.AddWithValue("@id", updatedEvent.EventId);
+
+    	cmd.ExecuteNonQuery();
+	}
+	
 
     public List<Event> SearchEvents(string keyword)
     {
