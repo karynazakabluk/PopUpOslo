@@ -1,21 +1,21 @@
-using PopUpOslo.Domain.Enums;
 using Microsoft.Data.Sqlite;
-using System.Collections.Generic;
 using PopUpOslo.Domain.Entities;
+using System.Collections.Generic;
 
 namespace PopUpOslo.Infrastructure.Repositories;
 
 public class BookingOptionRepository : BaseRepository
 {
-    //  Add booking option
+    // Add booking option
     public void AddOption(BookingOption option)
     {
-        using var conn = GetOpenConnection(); 
+        using var conn = GetOpenConnection();
 
         var cmd = conn.CreateCommand();
-        cmd.CommandText = @"INSERT INTO BookingOptions 
-        (EventId, Name, Price, Capacity, RemainingCapacity)
-        VALUES (@e, @n, @p, @c, @r)";
+        cmd.CommandText = @"
+            INSERT INTO BookingOptions 
+            (EventId, Name, Price, Capacity, RemainingCapacity)
+            VALUES (@e, @n, @p, @c, @r)";
 
         cmd.Parameters.AddWithValue("@e", option.EventId);
         cmd.Parameters.AddWithValue("@n", option.Name);
@@ -26,12 +26,12 @@ public class BookingOptionRepository : BaseRepository
         cmd.ExecuteNonQuery();
     }
 
-    //  Get all options for an event
+    // Get all options for an event
     public List<BookingOption> GetOptionsByEvent(int eventId)
     {
         var list = new List<BookingOption>();
 
-        using var conn = GetOpenConnection(); //  no repetition
+        using var conn = GetOpenConnection();
 
         var cmd = conn.CreateCommand();
         cmd.CommandText = "SELECT * FROM BookingOptions WHERE EventId=@id";
@@ -55,8 +55,8 @@ public class BookingOptionRepository : BaseRepository
         return list;
     }
 
-    //  Get single option
-    public BookingOption GetOptionById(int optionId)
+    // Get single option (FIXED → return null instead of exception)
+    public BookingOption? GetOptionById(int optionId)
     {
         using var conn = GetOpenConnection();
 
@@ -66,50 +66,50 @@ public class BookingOptionRepository : BaseRepository
 
         using var reader = cmd.ExecuteReader();
 
-        if (reader.Read())
-        {
-            return new BookingOption
-            {
-                OptionId = reader.GetInt32(0),
-                EventId = reader.GetInt32(1),
-                Name = reader.GetString(2),
-                Price = reader.GetDouble(3),
-                Capacity = reader.GetInt32(4),
-                RemainingCapacity = reader.GetInt32(5)
-            };
-        }
-        else
-        {
-            throw new Exception("Booking option not found");
-        }
+        if (!reader.Read())
+            return null;
 
+        return new BookingOption
+        {
+            OptionId = reader.GetInt32(0),
+            EventId = reader.GetInt32(1),
+            Name = reader.GetString(2),
+            Price = reader.GetDouble(3),
+            Capacity = reader.GetInt32(4),
+            RemainingCapacity = reader.GetInt32(5)
+        };
     }
 
-    // Reduce capacity
+    // Reduce capacity (SAFE)
     public void ReduceCapacity(int optionId)
     {
         using var conn = GetOpenConnection();
 
         var cmd = conn.CreateCommand();
-        cmd.CommandText = @"UPDATE BookingOptions 
-                            SET RemainingCapacity = RemainingCapacity - 1 
-                            WHERE OptionId = @id AND RemainingCapacity > 0";
+        cmd.CommandText = @"
+            UPDATE BookingOptions 
+            SET RemainingCapacity = RemainingCapacity - 1 
+            WHERE OptionId = @id AND RemainingCapacity > 0";
 
         cmd.Parameters.AddWithValue("@id", optionId);
+
         cmd.ExecuteNonQuery();
     }
 
-    // Increase capacity
+    // Increase capacity (FIXED → prevent overflow)
     public void IncreaseCapacity(int optionId)
     {
         using var conn = GetOpenConnection();
 
         var cmd = conn.CreateCommand();
-        cmd.CommandText = @"UPDATE BookingOptions 
-                            SET RemainingCapacity = RemainingCapacity + 1 
-                            WHERE OptionId = @id";
+        cmd.CommandText = @"
+            UPDATE BookingOptions 
+            SET RemainingCapacity = RemainingCapacity + 1 
+            WHERE OptionId = @id
+              AND RemainingCapacity < Capacity";
 
         cmd.Parameters.AddWithValue("@id", optionId);
+
         cmd.ExecuteNonQuery();
     }
 }

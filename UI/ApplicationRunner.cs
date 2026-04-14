@@ -412,35 +412,60 @@ public class ApplicationRunner
         Console.WriteLine();
 
         int eventId = InputHandler.ReadInt("Enter event id: ");
-        Event? selected = _eventService.GetEventById(eventId);
+        Event? selectedEvent = _eventService.GetEventById(eventId);
 
-        if (selected == null)
+        if (selectedEvent == null)
         {
             Menu.ShowError("Event not found.");
             Menu.Pause();
             return;
         }
 
-		bool confirm = InputHandler.Confirm($"Book '{selected.Title}'?");
+        // Get ticket options (VIP / Standard etc.)
+        var options = _bookingOptionService.GetOptionsByEvent(eventId);
 
-		if (!confirm)
-		{
-    		Menu.ShowMessage("Booking cancelled.");
-    	
-    		return;
-		}
-
-        bool success = _bookingService.CreateBooking(_currentUserId, selected);
-		
-        if (!success)
+        if (options.Count == 0)
         {
-            Menu.ShowError("Booking could not be completed. You may already have a booking for this event.");
-    		Menu.Pause();
-    		return;
+            Menu.ShowError("No ticket options available for this event.");
+            Menu.Pause();
+            return;
         }
 
-        Menu.ShowSuccess($"Booked: {selected.Title}");
-       
+        Console.WriteLine();
+        Console.WriteLine("Ticket Options:");
+        Console.WriteLine("--------------------------------");
+
+        foreach (var o in options)
+        {
+            Console.WriteLine($"{o.OptionId}. {o.Name} - {o.Price} NOK (Left: {o.RemainingCapacity})");
+        }
+
+        Console.WriteLine();
+
+        int selectedOptionId = InputHandler.ReadInt("Select ticket option id: ");
+
+        bool confirm = InputHandler.Confirm($"Book '{selectedEvent.Title}'?");
+
+        if (!confirm)
+        {
+            Menu.ShowMessage("Booking cancelled.");
+            return;
+        }
+
+        bool success = _bookingService.CreateBooking(
+            _currentUserId,
+            selectedEvent.EventId,
+            selectedOptionId
+        );
+
+        if (!success)
+        {
+            Menu.ShowError("Booking failed. You may already have a booking or it is sold out.");
+            Menu.Pause();
+            return;
+        }
+
+        Menu.ShowSuccess($"Booked: {selectedEvent.Title}");
     }
 
     private void HandleMyBookings()
