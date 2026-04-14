@@ -9,7 +9,7 @@ public class BookingService
     private readonly BookingRepository _bookingRepository = new();
     private readonly BookingOptionRepository _bookingOptionRepository = new();
 
-    // ✅ CREATE BOOKING (USER SELECTS TICKET TYPE)
+    // CREATE BOOKING (USER SELECTS TICKET TYPE)
     public bool CreateBooking(int userId, int eventId, int optionId)
     {
         // 1. Get selected ticket option
@@ -59,19 +59,19 @@ public class BookingService
         return true;
     }
 
-    // ✅ GET BOOKINGS
+    // GET BOOKINGS
     public List<Booking> GetBookingsByUser(int userId)
     {
         return _bookingRepository.GetBookingsByUser(userId);
     }
 
-    // ✅ GET SINGLE BOOKING
+    // GET SINGLE BOOKING
     public Booking? GetBookingById(int bookingId)
     {
         return _bookingRepository.GetBookingById(bookingId);
     }
 
-    // ✅ CANCEL BOOKING (RESTORES CAPACITY)
+    // CANCEL BOOKING (RESTORES CAPACITY)
     public bool CancelBooking(int bookingId, int userId)
     {
         var booking = _bookingRepository.GetBookingById(bookingId);
