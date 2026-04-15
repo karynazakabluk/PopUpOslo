@@ -34,4 +34,8 @@ public class BookingOptionService
             _bookingOptionRepository.AddOption(option);
         }
     }
+    public List<BookingOption> GetOptionsByEvent(int eventId)
+    {
+        return _bookingOptionRepository.GetOptionsByEvent(eventId);
+    }
 }

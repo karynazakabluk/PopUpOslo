@@ -670,56 +670,119 @@ public class ApplicationRunner
 
 
     private void HandleBookEvent()
+{
+    Menu.ShowSectionTitle("Book Event");
+
+    var events = _eventService.GetAllEvents();
+
+    if (events.Count == 0)
     {
-        Menu.ShowSectionTitle("Book Event");
-
-        var events = _eventService.GetAllEvents();
-
-        if (events.Count == 0)
-        {
-            Menu.ShowMessage("No events available to book.");
-            Menu.Pause();
-            return;
-        }
-
-        foreach (var ev in events)
-        {
-            Console.WriteLine($"{ev.EventId}. {ev.Title}");
-        }
-
-        Console.WriteLine();
-
-        int eventId = InputHandler.ReadInt("Enter event id: ");
-        Event? selected = _eventService.GetEventById(eventId);
-
-        if (selected == null)
-        {
-            Menu.ShowError("Event not found.");
-            Menu.Pause();
-            return;
-        }
-
-		bool confirm = InputHandler.Confirm($"Book '{selected.Title}'?");
-
-		if (!confirm)
-		{
-    		Menu.ShowMessage("Booking cancelled.");
-    	
-    		return;
-		}
-
-        bool success = _bookingService.CreateBooking(_currentUserId, selected);
-		
-        if (!success)
-        {
-            Menu.ShowError("Booking could not be completed. You may already have a booking for this event.");
-    		Menu.Pause();
-    		return;
-        }
-
-        Menu.ShowSuccess($"Booked: {selected.Title}");
-       
+        Menu.ShowMessage("No events available to book.");
+        Menu.Pause();
+        return;
     }
+
+    // Show events
+    foreach (var ev in events)
+    {
+        Console.WriteLine($"{ev.EventId}. {ev.Title}");
+    }
+
+    Console.WriteLine();
+
+    int eventId = InputHandler.ReadInt("Enter event id: ");
+    Event? selectedEvent = _eventService.GetEventById(eventId);
+
+    if (selectedEvent == null)
+    {
+        Menu.ShowError("Event not found.");
+        Menu.Pause();
+        return;
+    }
+
+    // 🟢 ALWAYS fetch latest options from DB
+    var options = _bookingOptionService.GetOptionsByEvent(eventId);
+
+    if (options.Count == 0)
+    {
+        Menu.ShowError("No ticket options available for this event.");
+        Menu.Pause();
+        return;
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("Ticket Options:");
+    Console.WriteLine("--------------------------------");
+
+    foreach (var o in options)
+    {
+        string status = o.RemainingCapacity > 0 ? $"Left: {o.RemainingCapacity}" : "SOLD OUT";
+
+        Console.WriteLine($"{o.OptionId}. {o.Name} - {o.Price} NOK ({status})");
+    }
+
+    Console.WriteLine();
+
+    int selectedOptionId = InputHandler.ReadInt("Select ticket option id: ");
+
+    // 🟢 Validate selected option
+    var selectedOption = options.FirstOrDefault(o => o.OptionId == selectedOptionId);
+
+    if (selectedOption == null)
+    {
+        Menu.ShowError("Invalid ticket option.");
+        Menu.Pause();
+        return;
+    }
+
+    if (selectedOption.RemainingCapacity <= 0)
+    {
+        Menu.ShowError("This ticket type is SOLD OUT.");
+        Menu.Pause();
+        return;
+    }
+
+    Console.WriteLine($"You selected: {selectedOption.Name} - {selectedOption.Price} NOK");
+
+    // Confirm booking
+    bool confirm = InputHandler.Confirm($"Book '{selectedEvent.Title}'?");
+
+    if (!confirm)
+    {
+        Menu.ShowMessage("Booking cancelled.");
+        return;
+    }
+
+    // 🟢 Call booking service
+    bool success = _bookingService.CreateBooking(
+        _currentUserId,
+        selectedEvent.EventId,
+        selectedOptionId
+    );
+
+    if (!success)
+    {
+        Menu.ShowError("Booking failed. You may already have a booking or it is sold out.");
+        Menu.Pause();
+        return;
+    }
+
+    Menu.ShowSuccess($"Booked: {selectedEvent.Title} ({selectedOption.Name})");
+
+    // 🟢 Refresh data after booking (VERY IMPORTANT FIX)
+    options = _bookingOptionService.GetOptionsByEvent(eventId);
+
+    Console.WriteLine();
+    Console.WriteLine("Updated Ticket Availability:");
+    Console.WriteLine("--------------------------------");
+
+    foreach (var o in options)
+    {
+        Console.WriteLine($"{o.Name} - {o.Price} NOK (Left: {o.RemainingCapacity})");
+    }
+
+    Menu.Pause();
+}
 
     private void HandleMyBookings()
     {
