@@ -71,19 +71,37 @@ public static class InputHandler
 
     public static string ReadPassword(string prompt)
     {
+        Console.Write(prompt);
+
+        string password = string.Empty;
+        ConsoleKeyInfo key;
+
         while (true)
         {
-            Console.Write(prompt);
-            string? input = Console.ReadLine();
+            key = Console.ReadKey(intercept: true);
 
-            if (!string.IsNullOrWhiteSpace(input))
+            if (key.Key == ConsoleKey.Enter)
             {
-                return input.Trim();
+                Console.WriteLine();
+                break;
             }
 
-            Console.WriteLine("Password cannot be empty.");
-            Console.WriteLine();
+            if (key.Key == ConsoleKey.Backspace)
+            {
+                if (password.Length > 0)
+                {
+                    password = password[..^1];
+                    Console.Write("\b \b");
+                }
+
+                continue;
+            }
+
+            password += key.KeyChar;
+            Console.Write("*");
         }
+
+        return password;
     }
 
     public static DateTime ReadDateTime(string prompt)
