@@ -157,8 +157,6 @@ public class ApplicationRunner
 		}
 	}
 
-
-
     private void HandleRegister()
     {
         Menu.ShowSectionTitle("Register");
@@ -176,6 +174,7 @@ public class ApplicationRunner
         }
 
         Menu.ShowSuccess($"Account for '{username}' created successfully.");
+		Console.WriteLine();
   
     }
 
@@ -200,6 +199,7 @@ public class ApplicationRunner
         _currentUserId = user.UserId;
 
         Menu.ShowSuccess($"Welcome, {user.Username}!");
+		Console.WriteLine();
         
     }
 
@@ -245,7 +245,7 @@ public class ApplicationRunner
 
         if (choice < 0 || choice > 4)
         {
-            Menu.ShowError("Invalid option");
+            Menu.ShowError("Invalid option.");
             Menu.Pause();
             return;
         }
@@ -255,13 +255,14 @@ public class ApplicationRunner
 
     private List<Event> HandleKeywordSearch(List<Event> allEvents)
     {
-        string keyword = InputHandler.ReadRequiredString("Enter keyword: ");
+        string keyword = InputHandler.ReadRequiredString("Enter keyword to search: ");
         return _searchService.SearchEvents(allEvents, keyword);
     }
 
     private List<Event> HandleCategoryFilter(List<Event> allEvents)
     {
         Console.WriteLine("Categories");
+		Console.WriteLine("----------------------------------------");
         Console.WriteLine("1. Food");
         Console.WriteLine("2. Networking");
         Console.WriteLine("3. Education");
@@ -279,6 +280,7 @@ public class ApplicationRunner
     private List<Event> HandleTypeFilter(List<Event> allEvents)
     {
         Console.WriteLine("Types");
+		Console.WriteLine("----------------------------------------");
         Console.WriteLine("1. Workshop");
         Console.WriteLine("2. Dining");
         Console.WriteLine();
@@ -298,6 +300,7 @@ public class ApplicationRunner
         if (results.Count == 0)
         {
             Menu.ShowMessage("No matching events found.");
+			Menu.Pause();
           
             return;
         }
@@ -316,7 +319,7 @@ public class ApplicationRunner
 
         Console.WriteLine();
 
-        bool viewDetails = InputHandler.Confirm("View event details?");
+        bool viewDetails = InputHandler.Confirm("Do you want to view event details?");
 
         if (!viewDetails)
         {
@@ -324,7 +327,12 @@ public class ApplicationRunner
             return;
         }
 
-        int eventId = InputHandler.ReadInt("Enter event id: ");
+        int eventId = InputHandler.ReadInt("Enter event ID to view details (0 to go back): ");
+
+		if (eventId == 0)
+		{
+    		return;
+		}
         Event? selected = _eventService.GetEventById(eventId);
 
         if (selected == null)
@@ -420,6 +428,7 @@ public class ApplicationRunner
 		_bookingOptionService.CreateDefaultOption(eventId);
 
 		Menu.ShowSuccess("Event created successfully.");
+		Menu.Pause();
       
     }
 
@@ -449,8 +458,24 @@ public class ApplicationRunner
 
         }
 
-        Console.WriteLine();
-        Menu.Pause();
+		Console.WriteLine();
+
+		int eventId = InputHandler.ReadInt("Enter event ID to view details (0 to go back): ");
+
+		if (eventId == 0)
+		{	
+    		return;
+		}
+		Event? selected = _eventService.GetEventById(eventId);
+
+		if (selected == null)
+		{
+			Menu.ShowError("Event not found.");
+			Menu.Pause();
+			return;
+		}
+
+		DisplayEventDetails(selected);
     }
 
 	private void HandleViewEventDetailsAdmin()
@@ -473,7 +498,12 @@ public class ApplicationRunner
 
     	Console.WriteLine();
 
-    	int eventId = InputHandler.ReadInt("Enter event id: ");
+    	int eventId = InputHandler.ReadInt("Enter event ID to view details (0 to go back): ");
+
+		if (eventId == 0)
+		{
+    		return;
+		}
     	Event? selected = _eventService.GetEventById(eventId);
 
     	if (selected == null)
@@ -506,7 +536,12 @@ public class ApplicationRunner
 
     	Console.WriteLine();
 
-    	int eventId = InputHandler.ReadInt("Enter event id: ");
+    	int eventId = InputHandler.ReadInt("Enter event ID to edit (0 to go back): ");
+
+		if (eventId == 0)
+		{
+    		return;
+		}
     	Event? selected = _eventService.GetEventById(eventId);
 
     	if (selected == null)
@@ -518,7 +553,7 @@ public class ApplicationRunner
 
 		Console.WriteLine("Leave fields empty to keep current values.");
 		Console.WriteLine();
-    	//  
+    	
     	string newTitle = InputHandler.ReadOptionalString($"Title ({selected.Title}): ");
     	string newDescription = InputHandler.ReadOptionalString($"Description ({selected.Description}): ");
     	string newVenue = InputHandler.ReadOptionalString($"Venue ({selected.Venue}): ");
@@ -526,7 +561,7 @@ public class ApplicationRunner
     	DateTime? newDate = InputHandler.ReadOptionalDateTime(
     $"Date and time ({selected.DateTime:g}, e.g. 2026-07-15 18:00): ");
 
-    	// hvis ikke noe ble skrevet
+  
     	selected.Title = string.IsNullOrWhiteSpace(newTitle) ? selected.Title : newTitle;
     	selected.Description = string.IsNullOrWhiteSpace(newDescription) ? selected.Description : newDescription;
     	selected.Venue = string.IsNullOrWhiteSpace(newVenue) ? selected.Venue : newVenue;
@@ -537,12 +572,14 @@ public class ApplicationRunner
     	if (!confirm)
     	{
         	Menu.ShowMessage("Edit cancelled.");
+			
         	return;
     	}
 
     	_eventService.UpdateEvent(selected);
 
     	Menu.ShowSuccess("Event updated successfully.");
+		Menu.Pause();
 	}
 	private void HandleChangeEventStatus()
 	{
@@ -565,7 +602,12 @@ public class ApplicationRunner
 
     	Console.WriteLine();
 
-    	int eventId = InputHandler.ReadInt("Enter event id: ");
+    	int eventId = InputHandler.ReadInt("Enter event ID to update status (0 to go back): ");
+
+		if (eventId == 0)
+		{
+    		return;
+		}
     	Event? selected = _eventService.GetEventById(eventId);
 
     	if (selected == null)
@@ -665,7 +707,24 @@ public class ApplicationRunner
     	}
 
     	Console.WriteLine();
-    	Menu.Pause();
+
+		int eventId = InputHandler.ReadInt("Enter event ID to view details (0 to go back): ");
+
+		if (eventId == 0)
+		{
+    		return;
+		}
+
+		Event? selected = _eventService.GetEventById(eventId);
+
+		if (selected == null)
+		{
+    		Menu.ShowError("Event not found.");
+    		Menu.Pause();
+    		return;
+		}
+
+		DisplayEventDetails(selected);
 	}
 
 
@@ -687,10 +746,13 @@ public class ApplicationRunner
     {
         Console.WriteLine($"{ev.EventId}. {ev.Title}");
     }
+	Console.WriteLine();
 
-    Console.WriteLine();
-
-    int eventId = InputHandler.ReadInt("Enter event id: ");
+	int eventId = InputHandler.ReadInt("Enter event ID to book (0 to go back): ");
+    if (eventId == 0)
+	{
+    	return;
+	}
     Event? selectedEvent = _eventService.GetEventById(eventId);
 
     if (selectedEvent == null)
@@ -723,7 +785,7 @@ public class ApplicationRunner
 
     Console.WriteLine();
 
-    int selectedOptionId = InputHandler.ReadInt("Select ticket option id: ");
+    int selectedOptionId = InputHandler.ReadInt("Select ticket option ID: ");
 
     //  Validate selected option
     var selectedOption = options.FirstOrDefault(o => o.OptionId == selectedOptionId);
@@ -808,7 +870,12 @@ public class ApplicationRunner
         Console.WriteLine();
         
 
-        int bookingId = InputHandler.ReadInt("Enter booking id: ");
+        int bookingId = InputHandler.ReadInt("Enter booking ID to cancel (0 to go back): ");
+
+		if (bookingId == 0)
+		{
+    		return;
+		}
 		bool confirmCancel = InputHandler.Confirm($"Cancel booking #{bookingId}?");
 
 		if (!confirmCancel)
@@ -828,6 +895,7 @@ public class ApplicationRunner
         }
 
         Menu.ShowSuccess("Booking cancelled successfully.");
+		Menu.Pause();
       
     }
 
@@ -859,7 +927,13 @@ public class ApplicationRunner
 
         Console.WriteLine();
 
-        int eventId = InputHandler.ReadInt("Enter event id: ");
+        int eventId = InputHandler.ReadInt("Enter event ID to review (0 to go back): ");
+
+		if (eventId == 0)
+		{
+    		return;
+		}
+
         Event? selected = _eventService.GetEventById(eventId);
 
         if (selected == null)
@@ -900,6 +974,7 @@ public class ApplicationRunner
         }
 
         Menu.ShowSuccess("Review submitted successfully.");
+	
         
     }
 
@@ -917,6 +992,7 @@ public class ApplicationRunner
         _currentUserId = 0;
 
         Menu.ShowSuccess("You have been logged out.");
+		
         
     }
 
