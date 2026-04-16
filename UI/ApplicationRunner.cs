@@ -178,80 +178,91 @@ public class ApplicationRunner
   
     }
 
-    private void HandleLogin()
-    {
-        Menu.ShowSectionTitle("Login");
+   	private void HandleLogin()
+	{
+    	while (true)
+    	{
+        	Console.Clear();
+			Menu.ShowSectionTitle("Login");
 
-        string username = InputHandler.ReadRequiredString("Enter username: ");
-        string password = InputHandler.ReadPassword("Enter password: ");
+        	string username = InputHandler.ReadRequiredString("Enter username: ");
+        	string password = InputHandler.ReadPassword("Enter password: ");
 
-        User? user = _authService.Login(username, password);
+        	User? user = _authService.Login(username, password);
 
-        if (user == null)
-        {
-            Menu.ShowError("Invalid username or password.");
-            Menu.Pause();
-            return;
-        }
+        	if (user != null)
+        	{
+            	_isLoggedIn = true;
+            	_currentUsername = user.Username;
+            	_currentUserId = user.UserId;
 
-        _isLoggedIn = true;
-        _currentUsername = user.Username;
-        _currentUserId = user.UserId;
+            	Menu.ShowSuccess($"Welcome, {user.Username}!");
+            	Console.WriteLine();
+            	return;
+        	}
 
-        Menu.ShowSuccess($"Welcome, {user.Username}!");
-		Console.WriteLine();
-        
-    }
+        	Menu.ShowError("Invalid username or password.");
 
+        	bool tryAgain = InputHandler.Confirm("Try again?");
+
+        	if (!tryAgain)
+        	{
+            	return;
+        	}
+
+        	Console.WriteLine();
+    	}
+	}
     private void HandleBrowseEvents()
-    {
-        Menu.ShowSectionTitle("Browse Events");
+	{
+    	while (true)
+    	{
+        	Menu.ShowSectionTitle("Browse Events");
 
-        var allEvents = _eventService.GetAllEvents();
+        	var allEvents = _eventService.GetAllEvents();
 
-        if (allEvents.Count == 0)
-        {
-            Menu.ShowMessage("No events available.");
-            Menu.Pause();
-            return;
-        }
+        	if (allEvents.Count == 0)
+        	{
+            	Menu.ShowMessage("No events available.");
+            	Menu.Pause();
+            	return;
+        	}
 
-        Console.WriteLine("Browse Options");
-        Console.WriteLine("----------------------------------------");
-        Console.WriteLine("1. View all events");
-        Console.WriteLine("2. Search by keyword");
-        Console.WriteLine("3. Filter by category");
-        Console.WriteLine("4. Filter by type");
-        Console.WriteLine("0. Back");
-        Console.WriteLine();
+        	Console.WriteLine("Browse Options");
+        	Console.WriteLine("----------------------------------------");
+        	Console.WriteLine("1. View all events");
+        	Console.WriteLine("2. Search by keyword");
+        	Console.WriteLine("3. Filter by category");
+        	Console.WriteLine("4. Filter by type");
+        	Console.WriteLine("0. Back");
+        	Console.WriteLine();
 
-        int choice = InputHandler.ReadInt("Choose an option: ");
-        Console.WriteLine();
+        	int choice = InputHandler.ReadInt("Choose an option: ");
+        	Console.WriteLine();
 
-        List<Event> results = choice switch
-        {
-            1 => _eventService.GetAllEvents(),
-            2 => HandleKeywordSearch(allEvents),
-            3 => HandleCategoryFilter(allEvents),
-            4 => HandleTypeFilter(allEvents),
-            0 => new List<Event>(),
-            _ => new List<Event>()
-        };
+        	if (choice == 0)
+        	{
+            	return;
+        	}
 
-        if (choice == 0)
-        {
-            return;
-        }
+        	if (choice < 0 || choice > 4)
+        	{
+            	ShowInvalidOption();
+            	continue;
+        	}
 
-        if (choice < 0 || choice > 4)
-        {
-            Menu.ShowError("Invalid option.");
-            Menu.Pause();
-            return;
-        }
+        	List<Event> results = choice switch
+        	{
+            	1 => _eventService.GetAllEvents(),
+            	2 => HandleKeywordSearch(allEvents),
+            	3 => HandleCategoryFilter(allEvents),
+            	4 => HandleTypeFilter(allEvents),
+            	_ => new List<Event>()
+        	};
 
-        DisplayEventResults(results);
-    }
+        	DisplayEventResults(results);
+    	}
+	}
 
     private List<Event> HandleKeywordSearch(List<Event> allEvents)
     {
@@ -280,7 +291,7 @@ public class ApplicationRunner
     private List<Event> HandleTypeFilter(List<Event> allEvents)
     {
         Console.WriteLine("Types");
-		Console.WriteLine("----------------------------------------");
+		Console.WriteLine("--------");
         Console.WriteLine("1. Workshop");
         Console.WriteLine("2. Dining");
         Console.WriteLine();
@@ -295,7 +306,7 @@ public class ApplicationRunner
     private void DisplayEventResults(List<Event> results)
     {
         Console.WriteLine("Results");
-        Console.WriteLine("----------------------------------------");
+        Console.WriteLine("------------");
 
         if (results.Count == 0)
         {
@@ -304,28 +315,19 @@ public class ApplicationRunner
           
             return;
         }
-
+		Console.WriteLine("ID   | Title                          | Category    | Type       | Venue              | Date             | Status");
+		Console.WriteLine("------------------------------------------------------------------------------------------------------------------");
         foreach (var ev in results)
         {
             double avgRating = _reviewService.GetAverageRating(ev.EventId);
 
-            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.Venue} | {ev.DateTime:g} | {ev.Status}");
-
-            if (avgRating > 0)
-            {
-                Console.WriteLine($"   Average rating: {avgRating:F1}/5");
-            }
+        Console.WriteLine(
+    $"{ev.EventId,-4} | {ev.Title,-30} | {ev.Category,-11} | {ev.Type,-10} | {ev.Venue,-18} | {ev.DateTime,-16:g} | {ev.Status,-10}");
+        
         }
 
         Console.WriteLine();
-
-        bool viewDetails = InputHandler.Confirm("Do you want to view event details?");
-
-        if (!viewDetails)
-        {
-           
-            return;
-        }
+        
 
         int eventId = InputHandler.ReadInt("Enter event ID to view details (0 to go back): ");
 
@@ -444,19 +446,16 @@ public class ApplicationRunner
             Menu.Pause();
             return;
         }
-
+		Console.WriteLine("ID   | Title                          | Category    | Type       | Venue              | Date             | Status");
+		Console.WriteLine("------------------------------------------------------------------------------------------------------------------");
         foreach (var ev in myEvents)
         {
             double avgRating = _reviewService.GetAverageRating(ev.EventId);
 
-            Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.Venue} | {ev.DateTime:g} | {ev.Status}");
+           Console.WriteLine(
+    $"{ev.EventId,-4} | {ev.Title,-30} | {ev.Category,-11} | {ev.Type,-10} | {ev.Venue,-18} | {ev.DateTime,-16:g} | {ev.Status,-10}");
 
-            if (avgRating > 0)
-    		{
-        		Console.WriteLine($"   Average rating: {avgRating:F1}/5");
-    		}
-
-        }
+     
 
 		Console.WriteLine();
 
@@ -477,6 +476,7 @@ public class ApplicationRunner
 
 		DisplayEventDetails(selected);
     }
+}
 
 	private void HandleViewEventDetailsAdmin()
 	{
@@ -490,10 +490,12 @@ public class ApplicationRunner
         	Menu.Pause();
         	return;
     	}
-
+		Console.WriteLine("ID   | Title                          | Category   | Type       | Date             | Organizer | Status");
+		Console.WriteLine("---------------------------------------------------------------------------------------------------");
     	foreach (var ev in events)
     	{
-        	Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.DateTime:g} | Organizer: {ev.OrganizerId} | {ev.Status}");
+        	Console.WriteLine(
+    $"{ev.EventId,-4} | {ev.Title,-30} | {ev.Category,-10} | {ev.Type,-10} | {ev.DateTime,-16:g} | {ev.OrganizerId,-9} | {ev.Status,-10}");
     	}
 
     	Console.WriteLine();
@@ -529,12 +531,16 @@ public class ApplicationRunner
         	return;
     	}
 
-    	foreach (var ev in events)
-    	{
-        	Console.WriteLine($"{ev.EventId}. {ev.Title} | {ev.DateTime:g} | {ev.Status}");
-    	}
+    	Console.WriteLine("ID   | Title                          | Date             | Status");
+		Console.WriteLine("--------------------------------------------------------------------------------");
 
-    	Console.WriteLine();
+		foreach (var ev in events)
+		{
+    		Console.WriteLine(
+        		$"{ev.EventId,-4} | {ev.Title,-30} | {ev.DateTime,-16:g} | {ev.Status,-10}");
+		}
+
+		Console.WriteLine();
 
     	int eventId = InputHandler.ReadInt("Enter event ID to edit (0 to go back): ");
 
@@ -594,13 +600,16 @@ public class ApplicationRunner
         	return;
     	}
 
-    	foreach (var ev in events)
-    	{
-        	Console.WriteLine(
-            	$"{ev.EventId}. {ev.Title} | {ev.DateTime:g} | Organizer: {ev.OrganizerId} | {ev.Status}");
-    	}
+    	Console.WriteLine("ID   | Title                          | Date             | Organizer | Status");
+		Console.WriteLine("--------------------------------------------------------------------------------");
 
-    	Console.WriteLine();
+		foreach (var ev in events)
+		{
+    		Console.WriteLine(
+        		$"{ev.EventId,-4} | {ev.Title,-30} | {ev.DateTime,-16:g} | {ev.OrganizerId,-9} | {ev.Status,-10}");
+		}
+
+		Console.WriteLine();
 
     	int eventId = InputHandler.ReadInt("Enter event ID to update status (0 to go back): ");
 
@@ -675,17 +684,18 @@ public class ApplicationRunner
         	return;
     	}
 
-    	foreach (var ev in events)
-    	{
-        	Console.WriteLine(
-            	$"{ev.EventId}. {ev.Title} | {ev.DateTime:g} | {ev.Status}");
-    	}
+    	Console.WriteLine("ID   | Title                          | Date             | Status");
+		Console.WriteLine("------------------------------------------------------------------");
 
-    	Console.WriteLine();
-    	Menu.Pause();
-	}
+		foreach (var ev in events)
+		{
+    		Console.WriteLine(
+        		$"{ev.EventId,-4} | {ev.Title,-30} | {ev.DateTime,-16:g} | {ev.Status,-10}");
+		}
 
-
+		Console.WriteLine();
+		Menu.Pause();
+			}
 
 	private void HandleViewAllEventsAdmin()
 	{
@@ -699,13 +709,14 @@ public class ApplicationRunner
         	Menu.Pause();
         	return;
     	}
-
+		Console.WriteLine("ID   | Title                          | Category    | Type       | Date             | Organizer | Status");
+		Console.WriteLine("------------------------------------------------------------------------------------------------------------");
     	foreach (var ev in events)
     	{
         	Console.WriteLine(
-            	$"{ev.EventId}. {ev.Title} | {ev.Category} | {ev.Type} | {ev.DateTime:g} | Organizer: {ev.OrganizerId} | {ev.Status}");
-    	}
-
+    	$"{ev.EventId,-4} | {ev.Title,-30} | {ev.Category,-11} | {ev.Type,-10} | {ev.DateTime,-16:g} | {ev.OrganizerId,-9} | {ev.Status,-10}");
+		}
+		
     	Console.WriteLine();
 
 		int eventId = InputHandler.ReadInt("Enter event ID to view details (0 to go back): ");
@@ -742,25 +753,30 @@ public class ApplicationRunner
     }
 
     // Show events
-    foreach (var ev in events)
-    {
-        Console.WriteLine($"{ev.EventId}. {ev.Title}");
-    }
-	Console.WriteLine();
+    	Console.WriteLine("ID   | Title                          | Date             | Venue");
+		Console.WriteLine("------------------------------------------------------------------");
 
-	int eventId = InputHandler.ReadInt("Enter event ID to book (0 to go back): ");
-    if (eventId == 0)
-	{
-    	return;
-	}
-    Event? selectedEvent = _eventService.GetEventById(eventId);
+		foreach (var ev in events)
+		{
+    		Console.WriteLine(
+        		$"{ev.EventId,-4} | {ev.Title,-30} | {ev.DateTime,-16:g} | {ev.Venue,-15}");
+		}
 
-    if (selectedEvent == null)
-    {
-        Menu.ShowError("Event not found.");
-        Menu.Pause();
-        return;
-    }
+		Console.WriteLine();
+
+		int eventId = InputHandler.ReadInt("Enter event ID to book (0 to go back): ");
+    	if (eventId == 0)
+		{
+    		return;
+		}
+    	Event? selectedEvent = _eventService.GetEventById(eventId);
+
+    	if (selectedEvent == null)
+    	{
+        	Menu.ShowError("Event not found.");
+        	Menu.Pause();
+        	return;
+    	}
 
     //  ALWAYS fetch latest options from DB
     var options = _bookingOptionService.GetOptionsByEvent(eventId);
@@ -859,15 +875,21 @@ public class ApplicationRunner
             return;
         }
 
-        foreach (var booking in bookings)
-        {
-            Event? ev = _eventService.GetEventById(booking.EventId);
-            string title = ev?.Title ?? "Unknown Event";
+        Console.WriteLine("ID   | Event Title                    | Date             | Status      | Venue");
+		Console.WriteLine("--------------------------------------------------------------------------------");
 
-            Console.WriteLine($"{booking.BookingId}. {title} | {booking.Status} | {booking.BookingDate}");
-        }
+		foreach (var booking in bookings)
+		{
+    		Event? ev = _eventService.GetEventById(booking.EventId);
+    		string title = ev?.Title ?? "Unknown Event";
+    		string venue = ev?.Venue ?? "Unknown Venue";
+    		string eventDate = ev != null ? ev.DateTime.ToString("g") : "Unknown Date";
 
-        Console.WriteLine();
+    		Console.WriteLine(
+        		$"{booking.BookingId,-4} | {title,-30} | {eventDate,-16:g} | {booking.Status,-11} | {venue,-15}");
+		}
+
+		Console.WriteLine();
         
 
         int bookingId = InputHandler.ReadInt("Enter booking ID to cancel (0 to go back): ");
@@ -1036,4 +1058,5 @@ public class ApplicationRunner
         Menu.ShowError("Invalid option. Please try again.");
         Menu.Pause();
     }
+	
 }
