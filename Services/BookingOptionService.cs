@@ -7,6 +7,7 @@ public class BookingOptionService
 {
     private readonly BookingOptionRepository _bookingOptionRepository = new();
 
+    // Create default ticket option
     public void CreateDefaultOption(int eventId)
     {
         var options = new List<BookingOption>
@@ -37,5 +38,17 @@ public class BookingOptionService
     public List<BookingOption> GetOptionsByEvent(int eventId)
     {
         return _bookingOptionRepository.GetOptionsByEvent(eventId);
+    }
+
+   
+    public List<BookingOption> GetOptionsByEvent(int eventId)
+    {
+        return _bookingOptionRepository.GetOptionsByEvent(eventId);
+    }
+
+    // Optional but useful
+    public BookingOption? GetById(int optionId)
+    {
+        return _bookingOptionRepository.GetOptionById(optionId);
     }
 }
