@@ -9,17 +9,30 @@ public class BookingService
     private readonly BookingRepository _bookingRepository = new();
     private readonly BookingOptionRepository _bookingOptionRepository = new();
 
-    public bool CreateBooking(int userId, Event selectedEvent)
+    // CREATE BOOKING (USER SELECTS TICKET TYPE)
+    public bool CreateBooking(int userId, int eventId, int optionId)
     {
-        if (selectedEvent == null)
+        // 1. Get selected ticket option
+        var option = _bookingOptionRepository.GetOptionById(optionId);
+
+        if (option == null || option.EventId != eventId)
         {
             return false;
         }
 
+        // 2. Check capacity (EVENT CAPACITY FEATURE)
+        if (option.RemainingCapacity <= 0)
+        {
+            Console.WriteLine($"{option.Name} tickets are sold out.");
+            return false;
+        }
+
+        // 3. Prevent duplicate booking for same option
         var existingBookings = _bookingRepository.GetBookingsByUser(userId);
 
         bool alreadyBooked = existingBookings.Any(b =>
-            b.EventId == selectedEvent.EventId &&
+            b.EventId == eventId &&
+            b.OptionId == optionId &&
             b.Status == BookingStatus.Booked);
 
         if (alreadyBooked)
@@ -27,18 +40,11 @@ public class BookingService
             return false;
         }
 
-        var options = _bookingOptionRepository.GetOptionsByEvent(selectedEvent.EventId);
-        var option = options.FirstOrDefault(o => o.RemainingCapacity > 0);
-
-        if (option == null)
-        {
-            return false;
-        }
-
+        // 4. Create booking
         var booking = new Booking
         {
             UserId = userId,
-            EventId = selectedEvent.EventId,
+            EventId = eventId,
             OptionId = option.OptionId,
             PriceAtBooking = option.Price,
             Status = BookingStatus.Booked,
@@ -46,24 +52,29 @@ public class BookingService
         };
 
         _bookingRepository.AddBooking(booking);
+
+        // 5. Reduce capacity (IMPORTANT)
         _bookingOptionRepository.ReduceCapacity(option.OptionId);
 
         return true;
     }
 
+    // GET BOOKINGS
     public List<Booking> GetBookingsByUser(int userId)
     {
         return _bookingRepository.GetBookingsByUser(userId);
     }
 
+    // GET SINGLE BOOKING
     public Booking? GetBookingById(int bookingId)
     {
         return _bookingRepository.GetBookingById(bookingId);
     }
 
+    // CANCEL BOOKING (RESTORES CAPACITY)
     public bool CancelBooking(int bookingId, int userId)
     {
-        Booking? booking = _bookingRepository.GetBookingById(bookingId);
+        var booking = _bookingRepository.GetBookingById(bookingId);
 
         if (booking == null)
         {
@@ -80,7 +91,10 @@ public class BookingService
             return false;
         }
 
+        // 1. Update booking status
         _bookingRepository.CancelBooking(bookingId);
+
+        // 2. Restore capacity
         _bookingOptionRepository.IncreaseCapacity(booking.OptionId);
 
         return true;

@@ -22,18 +22,16 @@ CREATE TABLE IF NOT EXISTS Events (
 
 
 CREATE TABLE IF NOT EXISTS BookingOptions (
-                                OptionId INTEGER PRIMARY KEY AUTOINCREMENT,
-                                EventId INTEGER NOT NULL,
-                                Name TEXT NOT NULL,
-                                Price REAL NOT NULL CHECK(Price >= 0),
-                                Capacity INTEGER NOT NULL CHECK(Capacity >= 0),
-                                RemainingCapacity INTEGER NOT NULL CHECK(RemainingCapacity >= 0),
+                                              OptionId INTEGER PRIMARY KEY AUTOINCREMENT,
+                                              EventId INTEGER NOT NULL,
+                                              Name TEXT NOT NULL,               -- VIP / Standard / Early Bird
+                                              Price REAL NOT NULL CHECK(Price >= 0),
+                                              Capacity INTEGER NOT NULL CHECK(Capacity >= 0),
+                                              RemainingCapacity INTEGER NOT NULL CHECK(RemainingCapacity >= 0),
 
-
-                                 FOREIGN KEY (EventId) REFERENCES Events(EventId)
-                                    ON DELETE CASCADE
+                                              FOREIGN KEY (EventId) REFERENCES Events(EventId)
+                                                  ON DELETE CASCADE
 );
-
 
 CREATE TABLE IF NOT EXISTS Bookings (
                           BookingId INTEGER PRIMARY KEY AUTOINCREMENT,
