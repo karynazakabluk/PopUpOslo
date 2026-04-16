@@ -700,7 +700,7 @@ public class ApplicationRunner
         return;
     }
 
-    // 🟢 ALWAYS fetch latest options from DB
+    //  ALWAYS fetch latest options from DB
     var options = _bookingOptionService.GetOptionsByEvent(eventId);
 
     if (options.Count == 0)
@@ -725,7 +725,7 @@ public class ApplicationRunner
 
     int selectedOptionId = InputHandler.ReadInt("Select ticket option id: ");
 
-    // 🟢 Validate selected option
+    //  Validate selected option
     var selectedOption = options.FirstOrDefault(o => o.OptionId == selectedOptionId);
 
     if (selectedOption == null)
@@ -753,7 +753,7 @@ public class ApplicationRunner
         return;
     }
 
-    // 🟢 Call booking service
+    // Call booking service
     bool success = _bookingService.CreateBooking(
         _currentUserId,
         selectedEvent.EventId,
@@ -769,7 +769,7 @@ public class ApplicationRunner
 
     Menu.ShowSuccess($"Booked: {selectedEvent.Title} ({selectedOption.Name})");
 
-    // 🟢 Refresh data after booking (VERY IMPORTANT FIX)
+    //  Refresh data after booking (VERY IMPORTANT FIX)
     options = _bookingOptionService.GetOptionsByEvent(eventId);
 
     Console.WriteLine();
