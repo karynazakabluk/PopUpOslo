@@ -9,25 +9,20 @@ public class BookingService
     private readonly BookingRepository _bookingRepository = new();
     private readonly BookingOptionRepository _bookingOptionRepository = new();
 
-    // CREATE BOOKING (USER SELECTS TICKET TYPE)
     public bool CreateBooking(int userId, int eventId, int optionId)
     {
-        // 1. Get selected ticket option
         var option = _bookingOptionRepository.GetOptionById(optionId);
 
-        if (option == null || option.EventId != eventId)
+        if (option == null)
         {
             return false;
         }
 
-        // 2. Check capacity (EVENT CAPACITY FEATURE)
         if (option.RemainingCapacity <= 0)
         {
-            Console.WriteLine($"{option.Name} tickets are sold out.");
             return false;
         }
 
-        // 3. Prevent duplicate booking for same option
         var existingBookings = _bookingRepository.GetBookingsByUser(userId);
 
         bool alreadyBooked = existingBookings.Any(b =>
@@ -40,12 +35,11 @@ public class BookingService
             return false;
         }
 
-        // 4. Create booking
         var booking = new Booking
         {
             UserId = userId,
             EventId = eventId,
-            OptionId = option.OptionId,
+            OptionId = optionId,
             PriceAtBooking = option.Price,
             Status = BookingStatus.Booked,
             BookingDate = DateTime.Now.ToString("s")
@@ -53,28 +47,23 @@ public class BookingService
 
         _bookingRepository.AddBooking(booking);
 
-        // 5. Reduce capacity (IMPORTANT)
-        _bookingOptionRepository.ReduceCapacity(option.OptionId);
+        _bookingOptionRepository.ReduceCapacity(optionId);
 
         return true;
     }
-
-    // GET BOOKINGS
     public List<Booking> GetBookingsByUser(int userId)
     {
         return _bookingRepository.GetBookingsByUser(userId);
     }
 
-    // GET SINGLE BOOKING
     public Booking? GetBookingById(int bookingId)
     {
         return _bookingRepository.GetBookingById(bookingId);
     }
 
-    // CANCEL BOOKING (RESTORES CAPACITY)
     public bool CancelBooking(int bookingId, int userId)
     {
-        var booking = _bookingRepository.GetBookingById(bookingId);
+        Booking? booking = _bookingRepository.GetBookingById(bookingId);
 
         if (booking == null)
         {
@@ -91,10 +80,7 @@ public class BookingService
             return false;
         }
 
-        // 1. Update booking status
         _bookingRepository.CancelBooking(bookingId);
-
-        // 2. Restore capacity
         _bookingOptionRepository.IncreaseCapacity(booking.OptionId);
 
         return true;

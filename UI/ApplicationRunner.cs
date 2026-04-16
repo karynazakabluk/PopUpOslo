@@ -682,6 +682,7 @@ public class ApplicationRunner
         return;
     }
 
+    // Show events
     foreach (var ev in events)
     {
         Console.WriteLine($"{ev.EventId}. {ev.Title}");
@@ -699,7 +700,7 @@ public class ApplicationRunner
         return;
     }
 
-    //  ALWAYS LOAD FRESH DATA FROM DATABASE
+    //  ALWAYS fetch latest options from DB
     var options = _bookingOptionService.GetOptionsByEvent(eventId);
 
     if (options.Count == 0)
@@ -715,9 +716,7 @@ public class ApplicationRunner
 
     foreach (var o in options)
     {
-        string status = o.RemainingCapacity == 0
-            ? "SOLD OUT"
-            : $"Left: {o.RemainingCapacity}";
+        string status = o.RemainingCapacity > 0 ? $"Left: {o.RemainingCapacity}" : "SOLD OUT";
 
         Console.WriteLine($"{o.OptionId}. {o.Name} - {o.Price} NOK ({status})");
     }
@@ -726,8 +725,8 @@ public class ApplicationRunner
 
     int selectedOptionId = InputHandler.ReadInt("Select ticket option id: ");
 
-    //  GET OPTION AGAIN 
-    var selectedOption = _bookingOptionService.GetById(selectedOptionId);
+    //  Validate selected option
+    var selectedOption = options.FirstOrDefault(o => o.OptionId == selectedOptionId);
 
     if (selectedOption == null)
     {
@@ -738,11 +737,14 @@ public class ApplicationRunner
 
     if (selectedOption.RemainingCapacity <= 0)
     {
-        Menu.ShowError("This ticket is SOLD OUT.");
+        Menu.ShowError("This ticket type is SOLD OUT.");
         Menu.Pause();
         return;
     }
 
+    Console.WriteLine($"You selected: {selectedOption.Name} - {selectedOption.Price} NOK");
+
+    // Confirm booking
     bool confirm = InputHandler.Confirm($"Book '{selectedEvent.Title}'?");
 
     if (!confirm)
@@ -751,6 +753,7 @@ public class ApplicationRunner
         return;
     }
 
+    // Call booking service
     bool success = _bookingService.CreateBooking(
         _currentUserId,
         selectedEvent.EventId,
@@ -764,23 +767,21 @@ public class ApplicationRunner
         return;
     }
 
-    Menu.ShowSuccess($"Booked: {selectedEvent.Title}");
+    Menu.ShowSuccess($"Booked: {selectedEvent.Title} ({selectedOption.Name})");
 
-    //  REFRESH AFTER BOOKING
-    var updatedOptions = _bookingOptionService.GetOptionsByEvent(eventId);
+    //  Refresh data after booking (VERY IMPORTANT FIX)
+    options = _bookingOptionService.GetOptionsByEvent(eventId);
 
     Console.WriteLine();
-    Console.WriteLine("Updated Ticket Status:");
+    Console.WriteLine("Updated Ticket Availability:");
     Console.WriteLine("--------------------------------");
 
-    foreach (var o in updatedOptions)
+    foreach (var o in options)
     {
-        string status = o.RemainingCapacity == 0
-            ? "SOLD OUT"
-            : $"Left: {o.RemainingCapacity}";
-
-        Console.WriteLine($"{o.OptionId}. {o.Name} - {o.Price} NOK ({status})");
+        Console.WriteLine($"{o.Name} - {o.Price} NOK (Left: {o.RemainingCapacity})");
     }
+
+    Menu.Pause();
 }
 
     private void HandleMyBookings()
