@@ -4,17 +4,13 @@ DELETE FROM BookingOptions;
 DELETE FROM Events;
 DELETE FROM Users;
 
--- =========================
+
 -- USERS (2 users)
--- =========================
 INSERT INTO Users (Username, PasswordHash) VALUES
                                                ('alice', 'alice123'),
                                                ('bob', 'bob123');
-
--- =========================
 -- EVENTS
 -- OrganizerId must match Users (1 = alice, 2 = bob)
--- =========================
 INSERT INTO Events
 (Title, Description, Category, Type, DateTime, Venue, Status, OrganizerId) VALUES
 
@@ -24,20 +20,17 @@ INSERT INTO Events
 
                                                                                ('Fine Dining Experience', 'Exclusive luxury dining event', 'Food', 'Dining', '2026-06-10 20:00', 'Luxury Hotel Oslo', 'Upcoming', 2);
 
--- =========================
+
 -- BOOKING OPTIONS
--- (NOTE: Removed RemainingCapacity because your schema does NOT have it)
--- =========================
 INSERT INTO BookingOptions (EventId, Name, Price, Capacity, RemainingCapacity) VALUES
                                                                                    (1, 'Standard Pass', 100, 2, 2),
                                                                                    (1, 'VIP Pass', 250, 1, 1),
                                                                                    (2, 'Entry Ticket', 200, 3, 3),
                                                                                    (3, 'Dinner Seat', 500, 2, 2);
 
--- =========================
+
 -- BOOKINGS
 -- Status: Booked / Cancelled / Completed
--- =========================
 
 -- Alice bookings
 INSERT INTO Bookings (UserId, EventId, OptionId, Price, Status) VALUES
@@ -50,9 +43,7 @@ INSERT INTO Bookings (UserId, EventId, OptionId, Price, Status) VALUES
                                                                     (2, 3, 4, 500, 'Booked'),
                                                                     (2, 2, 3, 0, 'Cancelled');
 
--- =========================
 -- REVIEWS
--- =========================
 
 INSERT INTO Reviews (UserId, EventId, Rating, Comment) VALUES
                                                            (1, 1, 5, 'Amazing workshop experience!'),
