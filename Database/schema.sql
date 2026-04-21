@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS Bookings (
                           FOREIGN KEY (OptionId) REFERENCES BookingOptions(OptionId)
                               ON DELETE CASCADE,
 
-                          UNIQUE(UserId, EventId, OptionId) -- Prevent duplicate bookings for same option
+                          UNIQUE(UserId, EventId, OptionId) 
 );
 
 
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS Reviews (
                          FOREIGN KEY (EventId) REFERENCES Events(EventId)
                              ON DELETE CASCADE,
 
-                         UNIQUE(UserId, EventId) -- One review per user per event
+                         UNIQUE(UserId, EventId) 
 );
 
 
