@@ -111,11 +111,12 @@ public class ApplicationRunner
     	Console.WriteLine("1. Create event");
 		Console.WriteLine("2. View my events");
 		Console.WriteLine("3. Browse events");
-		Console.WriteLine("4. View all events");
-		Console.WriteLine("5. View event details");
-		Console.WriteLine("6. Edit event");
-		Console.WriteLine("7. Change event status");
-		Console.WriteLine("8. View events by status");
+        Console.WriteLine("4. Book event");
+		Console.WriteLine("5. View all events");
+		Console.WriteLine("6. View event details");
+		Console.WriteLine("7. Edit event");
+		Console.WriteLine("8. Change event status");
+		Console.WriteLine("9. View events by status");
 		Console.WriteLine("0. Log out");
     	Console.WriteLine();
 
@@ -133,19 +134,22 @@ public class ApplicationRunner
     		case 3:
         		HandleBrowseEvents();
         		break;
-    		case 4:
+            case 4:
+        		HandleBookEvent();
+                break;
+    		case 5:
         		HandleViewAllEventsAdmin();
         		break;
-			case 5:
+			case 6:
         		HandleViewEventDetailsAdmin();
         		break;
-			case 6:
+			case 7:
         		HandleEditEvent();
         		break;
-    		case 7:
+    		case 8:
         		HandleChangeEventStatus();
         		break;
-			case 8:
+			case 9:
         		HandleViewEventsByStatus();
         		break;
     		case 0:
@@ -752,33 +756,48 @@ public class ApplicationRunner
         return;
     }
 
-    // Show events
-    	Console.WriteLine("ID   | Title                          | Date             | Venue");
-		Console.WriteLine("------------------------------------------------------------------");
+    // Create index mapping (LOGICAL ID)
+    var eventList = events.ToList();
 
-		foreach (var ev in events)
-		{
-    		Console.WriteLine(
-        		$"{ev.EventId,-4} | {ev.Title,-30} | {ev.DateTime,-16:g} | {ev.Venue,-15}");
-		}
+    Console.WriteLine("No   | Title                          | Date             | Venue");
+    Console.WriteLine("------------------------------------------------------------------");
 
-		Console.WriteLine();
+    for (int i = 0; i < eventList.Count; i++)
+    {
+        var ev = eventList[i];
 
-		int eventId = InputHandler.ReadInt("Enter event ID to book (0 to go back): ");
-    	if (eventId == 0)
-		{
-    		return;
-		}
-    	Event? selectedEvent = _eventService.GetEventById(eventId);
+        Console.WriteLine(
+            $"{i + 1,-4} | {ev.Title,-30} | {ev.DateTime,-16:g} | {ev.Venue,-15}");
+    }
 
-    	if (selectedEvent == null)
-    	{
-        	Menu.ShowError("Event not found.");
-        	Menu.Pause();
-        	return;
-    	}
+    Console.WriteLine();
 
-    //  ALWAYS fetch latest options from DB
+    int selectedIndex = InputHandler.ReadInt("Select event number (0 to go back): ");
+
+    if (selectedIndex == 0)
+        return;
+
+    if (selectedIndex < 1 || selectedIndex > eventList.Count)
+    {
+        Menu.ShowError("Invalid selection.");
+        Menu.Pause();
+        return;
+    }
+
+    // Convert logical index → real DB event
+    var selectedEvent = eventList[selectedIndex - 1];
+    int eventId = selectedEvent.EventId;
+
+    // Fetch latest event from DB (optional but safe)
+    selectedEvent = _eventService.GetEventById(eventId);
+
+    if (selectedEvent == null)
+    {
+        Menu.ShowError("Event not found.");
+        Menu.Pause();
+        return;
+    }
+
     var options = _bookingOptionService.GetOptionsByEvent(eventId);
 
     if (options.Count == 0)
@@ -792,19 +811,32 @@ public class ApplicationRunner
     Console.WriteLine("Ticket Options:");
     Console.WriteLine("--------------------------------");
 
-    foreach (var o in options)
-    {
-        string status = o.RemainingCapacity > 0 ? $"Left: {o.RemainingCapacity}" : "SOLD OUT";
+    // show with logical index
+	for (int i = 0; i < options.Count; i++)
+	{
+    	var o = options[i];
 
-        Console.WriteLine($"{o.OptionId}. {o.Name} - {o.Price} NOK ({status})");
-    }
+    	string status = o.RemainingCapacity > 0
+        ? $"Left: {o.RemainingCapacity}"
+        : "SOLD OUT";
 
-    Console.WriteLine();
+    	Console.WriteLine($"{i + 1}. {o.Name} - {o.Price} NOK ({status})");
+	}
 
-    int selectedOptionId = InputHandler.ReadInt("Select ticket option ID: ");
+	int optionIndex = InputHandler.ReadInt("Select ticket option (0 to cancel): ");
 
-    //  Validate selected option
-    var selectedOption = options.FirstOrDefault(o => o.OptionId == selectedOptionId);
+	if (optionIndex == 0)
+    return;
+
+	if (optionIndex < 1 || optionIndex > options.Count)
+	{
+    	Menu.ShowError("Invalid ticket option.");
+    	Menu.Pause();
+    	return;
+	}
+
+	var selectedOption = options[optionIndex - 1];
+	int selectedOptionId = selectedOption.OptionId;
 
     if (selectedOption == null)
     {
@@ -822,7 +854,6 @@ public class ApplicationRunner
 
     Console.WriteLine($"You selected: {selectedOption.Name} - {selectedOption.Price} NOK");
 
-    // Confirm booking
     bool confirm = InputHandler.Confirm($"Book '{selectedEvent.Title}'?");
 
     if (!confirm)
@@ -831,7 +862,6 @@ public class ApplicationRunner
         return;
     }
 
-    // Call booking service
     bool success = _bookingService.CreateBooking(
         _currentUserId,
         selectedEvent.EventId,
@@ -847,7 +877,7 @@ public class ApplicationRunner
 
     Menu.ShowSuccess($"Booked: {selectedEvent.Title} ({selectedOption.Name})");
 
-    //  Refresh data after booking (VERY IMPORTANT FIX)
+    // refresh
     options = _bookingOptionService.GetOptionsByEvent(eventId);
 
     Console.WriteLine();
