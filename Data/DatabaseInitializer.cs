@@ -6,57 +6,105 @@ namespace PopUpOslo.Data
 {
     public static class DatabaseInitializer
     {
-        private static string dbPath = Path.Combine("Database", "database.db");
-        private static string schemaPath = Path.Combine("Database", "schema.sql");
+        private static string ProjectRoot =>
+            Directory.GetParent(AppContext.BaseDirectory)!.Parent!.Parent!.Parent!.FullName;
 
-        public static void Initialize(bool seed = false)
+        private static string DbPath =>
+            Path.Combine(ProjectRoot, "Database", "database.db");
+
+        private static string SchemaPath =>
+            Path.Combine(ProjectRoot, "Database", "schema.sql");
+
+        private static string SeedPath =>
+            Path.Combine(ProjectRoot, "Data", "seed.sql");
+
+        public static void Initialize(bool seed = false, bool reset = false)
         {
-            Directory.CreateDirectory("Database");
+            Directory.CreateDirectory(Path.Combine(ProjectRoot, "Database"));
 
-            bool isNew = !File.Exists(dbPath);
-
-            var connectionString = $"Data Source={dbPath}";
-
-            using (var connection = new SqliteConnection(connectionString))
+            if (reset && File.Exists(DbPath))
             {
-                connection.Open();
-
-                // Enable foreign keys
-                var pragma = connection.CreateCommand();
-                pragma.CommandText = "PRAGMA foreign_keys = ON;";
-                pragma.ExecuteNonQuery();
-
-                if (!File.Exists(schemaPath))
-                {
-                    Console.WriteLine("schema.sql not found!");
-                    return;
-                }
-
-                string sql = File.ReadAllText(schemaPath);
-
-                var command = connection.CreateCommand();
-                command.CommandText = sql;
-                command.ExecuteNonQuery();
-                if (seed)
-                {
-                    SeedDatabase(connection);
-                }
-                Console.WriteLine(isNew
-                    ? "Database created and initialized."
-                    : "Database already exists. Schema ensured.");
-                
+                File.Delete(DbPath);
+                Console.WriteLine("Database reset.");
             }
-            
-            
+
+            bool isNew = !File.Exists(DbPath);
+
+            using var connection = new SqliteConnection($"Data Source={DbPath}");
+            connection.Open();
+
+            var pragma = connection.CreateCommand();
+            pragma.CommandText = "PRAGMA foreign_keys = ON;";
+            pragma.ExecuteNonQuery();
+
+            ApplySchema(connection);
+
+            if (seed)
+            {
+                SeedDatabase(connection);
+            }
+
+            Console.WriteLine(isNew
+                ? "Database created successfully."
+                : "Database opened successfully.");
         }
-        
+
+        private static void ApplySchema(SqliteConnection connection)
+        {
+            if (!File.Exists(SchemaPath))
+                throw new FileNotFoundException($"Schema not found: {SchemaPath}");
+
+            string schemaSql = File.ReadAllText(SchemaPath);
+
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = schemaSql;
+            cmd.ExecuteNonQuery();
+
+            Console.WriteLine("Schema applied.");
+        }
+
         private static void SeedDatabase(SqliteConnection connection)
         {
-            var seedSql = File.ReadAllText("Data/seed.sql");
+            if (!File.Exists(SeedPath))
+            {
+                Console.WriteLine("Seed file not found.");
+                return;
+            }
 
-            using var command = connection.CreateCommand();
-            command.CommandText = seedSql;
-            command.ExecuteNonQuery();
+            var seedSql = File.ReadAllText(SeedPath);
+
+            // Split by semicolon safely
+            var commands = seedSql
+                .Split(';', StringSplitOptions.RemoveEmptyEntries);
+
+            using var transaction = connection.BeginTransaction();
+
+            foreach (var cmdText in commands)
+            {
+                var trimmed = cmdText.Trim();
+                if (string.IsNullOrWhiteSpace(trimmed))
+                    continue;
+
+                using var cmd = connection.CreateCommand();
+                cmd.Transaction = transaction;
+                cmd.CommandText = trimmed;
+
+                try
+                {
+                    cmd.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Seed error on statement:");
+                    Console.WriteLine(trimmed);
+                    Console.WriteLine("Error: " + ex.Message);
+                    throw;
+                }
+            }
+
+            transaction.Commit();
+
+            Console.WriteLine("Seed inserted successfully.");
         }
     }
 }

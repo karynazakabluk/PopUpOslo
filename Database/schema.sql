@@ -1,9 +1,9 @@
 CREATE TABLE IF NOT EXISTS Users (
-                       UserId INTEGER PRIMARY KEY AUTOINCREMENT,
-                       Username TEXT NOT NULL UNIQUE,
-                       PasswordHash TEXT NOT NULL
+                                     UserId INTEGER PRIMARY KEY AUTOINCREMENT,
+                                     Username TEXT NOT NULL UNIQUE,
+                                     PasswordHash TEXT NOT NULL,
+                                     Role INTEGER NOT NULL DEFAULT 0
 );
-
 
 CREATE TABLE IF NOT EXISTS Events (
                         EventId INTEGER PRIMARY KEY AUTOINCREMENT,

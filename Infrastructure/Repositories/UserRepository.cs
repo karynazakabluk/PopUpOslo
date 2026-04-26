@@ -1,5 +1,6 @@
 using PopUpOslo.Domain.Entities;
 using Microsoft.Data.Sqlite;
+using PopUpOslo.Domain.Enums;
 
 namespace PopUpOslo.Infrastructure.Repositories;
 
@@ -11,11 +12,12 @@ public class UserRepository : BaseRepository
         using var conn = GetOpenConnection();
 
         var cmd = conn.CreateCommand();
-        cmd.CommandText = @"INSERT INTO Users (Username, PasswordHash)
-                            VALUES (@u, @p)";
+        cmd.CommandText = @"INSERT INTO Users (Username, PasswordHash, Role)
+                            VALUES (@u, @p, @r)";
 
         cmd.Parameters.AddWithValue("@u", user.Username);
         cmd.Parameters.AddWithValue("@p", user.PasswordHash);
+        cmd.Parameters.AddWithValue("@r", user.Role);
 
         cmd.ExecuteNonQuery();
     }
@@ -37,11 +39,12 @@ public class UserRepository : BaseRepository
             {
                 UserId = reader.GetInt32(0),
                 Username = reader.GetString(1),
-                PasswordHash = reader.GetString(2)
+                PasswordHash = reader.GetString(2),
+                Role = (UserRole)reader.GetInt32(3) 
             };
         }
 
-        return null; 
+        return null;
     }
 
     // Validate login
@@ -64,11 +67,12 @@ public class UserRepository : BaseRepository
             {
                 UserId = reader.GetInt32(0),
                 Username = reader.GetString(1),
-                PasswordHash = reader.GetString(2)
+                PasswordHash = reader.GetString(2),
+                Role = (UserRole)reader.GetInt32(3)
             };
         }
 
-        return null; 
+        return null;
     }
 
     // Get user by ID
@@ -88,11 +92,12 @@ public class UserRepository : BaseRepository
             {
                 UserId = reader.GetInt32(0),
                 Username = reader.GetString(1),
-                PasswordHash = reader.GetString(2)
+                PasswordHash = reader.GetString(2),
+                Role = (UserRole)reader.GetInt32(3)
             };
         }
 
-        return null; 
+        return null;
     }
 
     // Delete user

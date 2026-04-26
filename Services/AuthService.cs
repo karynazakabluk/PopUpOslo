@@ -1,4 +1,5 @@
 using PopUpOslo.Domain.Entities;
+using PopUpOslo.Domain.Enums;
 using PopUpOslo.Infrastructure.Repositories;
 
 namespace PopUpOslo.Services;
@@ -7,7 +8,7 @@ public class AuthService
 {
     private readonly UserRepository _userRepository = new();
 
-    public bool Register(string username, string password)
+    public bool Register(string username, string password, UserRole role)
     {
         if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
         {
@@ -17,18 +18,20 @@ public class AuthService
         username = username.Trim();
         password = password.Trim();
 
+        // Check if user already exists
         User? existingUser = _userRepository.GetUserByUsername(username);
 
         if (existingUser != null)
         {
+            Console.WriteLine("User already exists!");
             return false;
         }
 
         var user = new User
         {
             Username = username,
-            PasswordHash = password, // later replace with hashing
-            Role = "User"
+            PasswordHash = password,
+            Role = role               
         };
 
         _userRepository.AddUser(user);
