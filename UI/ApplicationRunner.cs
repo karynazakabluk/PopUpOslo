@@ -117,6 +117,7 @@ public class ApplicationRunner
 		Console.WriteLine("7. Edit event");
 		Console.WriteLine("8. Change event status");
 		Console.WriteLine("9. View events by status");
+		Console.WriteLine("10. My bookings");
 		Console.WriteLine("0. Log out");
     	Console.WriteLine();
 
@@ -151,6 +152,9 @@ public class ApplicationRunner
         		break;
 			case 9:
         		HandleViewEventsByStatus();
+        		break;
+			case 10:
+        		HandleMyBookings();
         		break;
     		case 0:
         		HandleLogout();
@@ -521,7 +525,7 @@ public class ApplicationRunner
 
     	DisplayEventDetails(selected);
 	}
-	
+
 	private void HandleEditEvent()
 	{
     	Menu.ShowSectionTitle("Edit Event");
