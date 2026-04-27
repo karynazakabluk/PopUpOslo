@@ -6,5 +6,6 @@ public enum EventCategory
     Networking,
     Education,
     Culture,
+    Technology,
     Other
 }
