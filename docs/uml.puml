@@ -1,0 +1,96 @@
+@startuml
+title PopUpOslo - UML Class Diagram
+
+abstract class User {
+-Id: int
+-Name: string
+-Role: string
++Login(): void
++Register(): void
+}
+
+class Event {
+-Id: int
+-Title: string
+-Date: DateTime
+-Location: string
+-TicketOptions: List
++AddEvent(): void
++UpdateEvent(): void
++RemoveEvent(): void
+}
+
+class Ticket {
+-Id: int
+-Type: string
+-Price: double
+-QuantityAvailable: int
++ReduceQuantity(): void
+}
+
+class Booking {
+-Id: int
+-UserId: int
+-EventId: int
+-TicketId: int
++CreateBooking(): void
++CancelBooking(): void
+}
+
+class Review {
+-Id: int
+-UserId: int
+-EventId: int
+-Comment: string
++AddReview(): void
+}
+
+class EventService {
++GetAllEvents(): List
++CreateEvent(): void
++DeleteEvent(): void
+}
+
+class BookingService {
++BookTicket(): void
++CancelBooking(): void
+}
+
+class UserService {
++RegisterUser(): void
++LoginUser(): void
+}
+
+class EventRepository {
++GetAll(): List
++Save(Event): void
++Delete(int): void
+}
+
+class BookingRepository {
++Save(Booking): void
++Delete(int): void
+}
+
+class UserRepository {
++Save(User): void
++GetById(int): User
+}
+
+class ReviewRepository {
++Save(Review): void
+}
+
+User "1" --> "*" Booking
+Event "1" --> "*" Booking
+Event "1" --> "*" Ticket
+Event "1" --> "*" Review
+
+EventService --> EventRepository
+BookingService --> BookingRepository
+UserService --> UserRepository
+
+BookingService --> EventService
+BookingService --> UserService
+
+@enduml
