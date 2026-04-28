@@ -55,3 +55,4 @@ nunit-*.xml
 .idea/
  
 Database/database.db
+.DS_Store
