@@ -117,6 +117,7 @@ public class ApplicationRunner
 		Console.WriteLine("7. Edit event");
 		Console.WriteLine("8. Change event status");
 		Console.WriteLine("9. View events by status");
+		Console.WriteLine("10. My bookings");
 		Console.WriteLine("0. Log out");
     	Console.WriteLine();
 
@@ -151,6 +152,9 @@ public class ApplicationRunner
         		break;
 			case 9:
         		HandleViewEventsByStatus();
+        		break;
+			case 10:
+        		HandleMyBookings();
         		break;
     		case 0:
         		HandleLogout();
@@ -439,48 +443,49 @@ public class ApplicationRunner
     }
 
     private void HandleViewMyEvents()
-    {
-        Menu.ShowSectionTitle("My Events");
+	{
+    	Menu.ShowSectionTitle("My Events");
 
-        var myEvents = _eventService.GetEventsByOrganizer(_currentUserId);
+    	var myEvents = _eventService.GetEventsByOrganizer(_currentUserId);
 
-        if (myEvents.Count == 0)
-        {
-            Menu.ShowMessage("You have not created any events yet.");
-            Menu.Pause();
-            return;
-        }
-		Console.WriteLine("ID   | Title                          | Category    | Type       | Venue              | Date             | Status");
-		Console.WriteLine("------------------------------------------------------------------------------------------------------------------");
-        foreach (var ev in myEvents)
-        {
-            double avgRating = _reviewService.GetAverageRating(ev.EventId);
+    	if (myEvents.Count == 0)
+    	{
+        	Menu.ShowMessage("You have not created any events yet.");
+        	Menu.Pause();
+        	return;
+    	}
 
-           Console.WriteLine(
-    $"{ev.EventId,-4} | {ev.Title,-30} | {ev.Category,-11} | {ev.Type,-10} | {ev.Venue,-18} | {ev.DateTime,-16:g} | {ev.Status,-10}");
+    	Console.WriteLine("ID   | Title                          | Category    | Type       | Venue              | Date             | Status");
+    	Console.WriteLine("------------------------------------------------------------------------------------------------------------------");
 
-     
+    	foreach (var ev in myEvents)
+    	{
+        	Console.WriteLine(
+            	$"{ev.EventId,-4} | {ev.Title,-30} | {ev.Category,-11} | {ev.Type,-10} | {ev.Venue,-18} | {ev.DateTime,-16:g} | {ev.Status,-10}");
+    	}
 
-		Console.WriteLine();
+    	Console.WriteLine();
 
-		int eventId = InputHandler.ReadInt("Enter event ID to view details (0 to go back): ");
+    	int eventId = InputHandler.ReadInt("Enter event ID to view details (0 to go back): ");
 
-		if (eventId == 0)
-		{	
-    		return;
-		}
-		Event? selected = _eventService.GetEventById(eventId);
+    	if (eventId == 0)
+    	{
+        	return;
+    	}
 
-		if (selected == null)
-		{
-			Menu.ShowError("Event not found.");
-			Menu.Pause();
-			return;
-		}
+    	Event? selected = _eventService.GetEventById(eventId);
 
-		DisplayEventDetails(selected);
-    }
-}
+    	if (selected == null)
+    	{
+        	Menu.ShowError("Event not found.");
+        	Menu.Pause();
+        	return;
+    	}
+
+    	DisplayEventDetails(selected);
+	}
+
+
 
 	private void HandleViewEventDetailsAdmin()
 	{
@@ -521,7 +526,7 @@ public class ApplicationRunner
 
     	DisplayEventDetails(selected);
 	}
-	
+
 	private void HandleEditEvent()
 	{
     	Menu.ShowSectionTitle("Edit Event");
