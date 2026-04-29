@@ -910,7 +910,7 @@ public class ApplicationRunner
             return;
         }
 
-        Console.WriteLine("ID   | Event Title                    | Date             | Status      | Venue");
+        Console.WriteLine("Booking Refno.| Event Title                    | Date             | Status      | Venue");
 		Console.WriteLine("--------------------------------------------------------------------------------");
 
 		foreach (var booking in bookings)
@@ -921,7 +921,7 @@ public class ApplicationRunner
     		string eventDate = ev != null ? ev.DateTime.ToString("g") : "Unknown Date";
 
     		Console.WriteLine(
-        		$"{booking.BookingId,-4} | {title,-30} | {eventDate,-16:g} | {booking.Status,-11} | {venue,-15}");
+        		$"{booking.BookingId,-13} | {title,-30} | {eventDate,-16:g} | {booking.Status,-11} | {venue,-15}");
 		}
 
 		Console.WriteLine();

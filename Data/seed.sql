@@ -56,10 +56,7 @@ INSERT INTO BookingOptions (EventId, Name, Price, Capacity, RemainingCapacity) V
 -- =========================
 
 INSERT INTO BookingOptions (EventId, Name, Price, Capacity, RemainingCapacity) VALUES
-                                                                                   (1, 'Standard Pass', 100, 2, 2),
-                                                                                   (1, 'VIP Pass', 250, 1, 1),
-                                                                                   (2, 'Entry Ticket', 200, 3, 3),
-                                                                                   (3, 'Dinner Seat', 500, 2, 2),
+                                                                                   (2, 'VIP Pass', 500, 3, 3),
 
                                                                                    (4, 'Standard Pass', 150, 50, 50),
                                                                                    (4, 'VIP Pass', 300, 10, 10),
