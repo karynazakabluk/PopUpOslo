@@ -41,3 +41,80 @@ The team followed a feature-based workflow:
 - Phase 4: Improve console UX
 - Phase 5: Final testing and documentation
 - Phase 6: Final adjustments and submission
+
+
+## Project Structure
+
+```text
+PopUpOslo/
+├── Data/
+│   ├── DatabaseInitializer.cs
+│   └── seed.sql
+├── Database/
+│   ├── database.db
+│   ├── DatabaseContext.cs
+│   └── schema.sql
+├── docs/
+│   ├── ai-usage.md
+│   ├── process-report.md
+│   ├── project-plan.md
+│   ├── requirements.md
+│   ├── task-tracking.md
+│   └── uml.puml
+├── Domain/
+│   ├── Entities/
+│   │   ├── Booking.cs
+│   │   ├── BookingOption.cs
+│   │   ├── DiningEvent.cs
+│   │   ├── Event.cs
+│   │   ├── Review.cs
+│   │   ├── User.cs
+│   │   └── WorkshopEvent.cs
+│   └── Enums/
+│       ├── BookingStatus.cs
+│       ├── EventCategory.cs
+│       ├── EventStatus.cs
+│       ├── EventType.cs
+│       └── UserRole.cs
+├── Infrastructure/
+│   └── Repositories/
+│       ├── BaseRepository.cs
+│       ├── BookingOptionRepository.cs
+│       ├── BookingRepository.cs
+│       ├── EventRepository.cs
+│       ├── ReviewRepository.cs
+│       └── UserRepository.cs
+├── Services/
+│   ├── AuthService.cs
+│   ├── BookingOptionService.cs
+│   ├── BookingService.cs
+│   ├── EventService.cs
+│   ├── ReviewService.cs
+│   └── SearchService.cs
+├── UI/
+│       ├── ApplicationRunner.cs
+│       ├── InputHandler.cs
+│       └── Menu.cs
+├
+├── PopUpOslo.csproj
+├── Program.cs
+└── README.md
+
+
+
+
+
+## Gantt Chart
+
+| Task                  | Week 1 | Week 2 | Week 3 | Week 4 | Week 5 |
+|-----------------------|--------|--------|--------|--------|--------|
+| Project Setup         | ████   |        |        |        |        |
+| Database Design       | ████   |        |        |        |        |
+| User Authentication   | ████   |        |        |        |        |
+| Event Management      |        | ████   |        |        |        |
+| Booking System        |        | ████   | ████   |        |        |
+| Search & Filter       |        |        | ████   |        |        |
+| Review System         |        |        |        | ████   |        |
+| Testing               |        |        |        | ████   | ████   |
+| UI Improvements       |        |        |        | ████   | ████   |
+| Documentation         |        |        |        |        | ████   |
