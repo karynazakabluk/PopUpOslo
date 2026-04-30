@@ -1,96 +1,201 @@
 @startuml
-title PopUpOslo - UML Class Diagram
+title PopUpOslo - Class Diagram (Clean Architecture)
 
-abstract class User {
--Id: int
--Name: string
--Role: string
-+Login(): void
-+Register(): void
+skinparam classAttributeIconSize 0
+
+' =========================
+' ENUMS
+' =========================
+enum UserRole {
+  Admin
+  Organizer
+  User
 }
 
-class Event {
--Id: int
--Title: string
--Date: DateTime
--Location: string
--TicketOptions: List
-+AddEvent(): void
-+UpdateEvent(): void
-+RemoveEvent(): void
+enum EventCategory {
+  Food
+  Networking
+  Education
+  Culture
+  Other
 }
 
-class Ticket {
--Id: int
--Type: string
--Price: double
--QuantityAvailable: int
-+ReduceQuantity(): void
+enum EventType {
+  Workshop
+  Dining
 }
+
+enum EventStatus {
+  Upcoming
+  Cancelled
+  Completed
+}
+
+enum BookingStatus {
+  Booked
+  Cancelled
+  Completed
+}
+
+' =========================
+' DOMAIN ENTITIES
+' =========================
+
+class User {
+  +UserId: int
+  +Username: string
+  -PasswordHash: string
+  +Role: UserRole
+}
+
+abstract class Event <<abstract>> {
+  +EventId: int
+  +Title: string
+  +Description: string
+  +DateTime: DateTime
+  +Venue: string
+  +OrganizerId: int
+  +Category: EventCategory
+  +Type: EventType
+  +Status: EventStatus
+}
+
+class DiningEvent
+class WorkshopEvent
 
 class Booking {
--Id: int
--UserId: int
--EventId: int
--TicketId: int
-+CreateBooking(): void
-+CancelBooking(): void
+  +BookingId: int
+  +UserId: int
+  +EventId: int
+  +OptionId: int
+  +Status: BookingStatus
+}
+
+class BookingOption {
+  +OptionId: int
+  +EventId: int
+  +Name: string
+  +Price: decimal
+  +Capacity: int
+  +RemainingCapacity: int
 }
 
 class Review {
--Id: int
--UserId: int
--EventId: int
--Comment: string
-+AddReview(): void
+  +ReviewId: int
+  +UserId: int
+  +EventId: int
+  +Rating: int
+  +Comment: string
+}
+
+' =========================
+' INHERITANCE
+' =========================
+Event <|-- DiningEvent
+Event <|-- WorkshopEvent
+
+' =========================
+' SERVICES
+' =========================
+
+class AuthService {
+  +Register(): bool
+  +Login(): User
 }
 
 class EventService {
-+GetAllEvents(): List
-+CreateEvent(): void
-+DeleteEvent(): void
+  +CreateEvent(): int
+  +GetAllEvents(): List
+  +GetEventById(): Event
+  +UpdateEvent(): void
+  +CancelEvent(): void
 }
 
 class BookingService {
-+BookTicket(): void
-+CancelBooking(): void
+  +CreateBooking(): bool
 }
 
-class UserService {
-+RegisterUser(): void
-+LoginUser(): void
+class BookingOptionService {
+  +GetOptionsByEvent(): List
+  +CreateDefaultOption(): void
 }
 
-class EventRepository {
-+GetAll(): List
-+Save(Event): void
-+Delete(int): void
+class ReviewService {
+  +AddReview(): void
 }
 
-class BookingRepository {
-+Save(Booking): void
-+Delete(int): void
+class SearchService {
+  +SearchEvents(): List
+}
+
+' =========================
+' REPOSITORIES
+' =========================
+
+abstract class BaseRepository <<abstract>> {
+  #GetOpenConnection(): SqliteConnection
 }
 
 class UserRepository {
-+Save(User): void
-+GetById(int): User
+  +AddUser(): void
+  +GetUserByUsername(): User
+}
+
+class EventRepository {
+  +AddEvent(): int
+  +GetAllEvents(): List
+  +GetEventById(): Event
+  +UpdateEvent(): void
+  +CancelEvent(): void
+}
+
+class BookingRepository {
+  +CreateBooking(): void
+}
+
+class BookingOptionRepository {
+  +GetByEvent(): List
+  +Create(): void
 }
 
 class ReviewRepository {
-+Save(Review): void
+  +AddReview(): void
 }
 
-User "1" --> "*" Booking
-Event "1" --> "*" Booking
-Event "1" --> "*" Ticket
-Event "1" --> "*" Review
+' =========================
+' RELATIONSHIPS
+' =========================
 
+User "1" --> "*" Booking
+User "1" --> "*" Review
+
+Event "1" --> "*" Booking
+Event "1" --> "*" Review
+Event "1" --> "*" BookingOption
+
+Booking --> BookingOption
+
+' enum connections
+User --> UserRole
+Event --> EventCategory
+Event --> EventType
+Event --> EventStatus
+Booking --> BookingStatus
+
+' services → repositories
+AuthService --> UserRepository
 EventService --> EventRepository
 BookingService --> BookingRepository
-UserService --> UserRepository
+BookingService --> BookingOptionRepository
+BookingOptionService --> BookingOptionRepository
+ReviewService --> ReviewRepository
+SearchService --> EventRepository
 
-BookingService --> EventService
-BookingService --> UserService
+' repository inheritance
+UserRepository --|> BaseRepository
+EventRepository --|> BaseRepository
+BookingRepository --|> BaseRepository
+BookingOptionRepository --|> BaseRepository
+ReviewRepository --|> BaseRepository
 
-@enduml
+@enduml 

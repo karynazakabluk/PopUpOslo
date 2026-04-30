@@ -37,7 +37,8 @@ Progress was tracked using:
 ---
 
 ## Collaboration
+Development was carried out collaboratively using GitHub for version control and code management.
 
-Development was done collaboratively through GitHub.
+Communication was conducted via Microsoft Teams.
 
 Changes were merged after completing features, and testing was performed continuously during development.

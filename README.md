@@ -2,15 +2,25 @@
 
 ## Team
 
-- Maria
-- Karyna
+- Karyna Zakabluk
+- Maria Vilma
+
 
 ## Description
-PopUpOslo is a console-based event management platform developed in C#.  
-The system allows users to browse events, book tickets, and leave reviews.  
-Users can also organise and manage their own events.
+PopUpOslo is a console-based event management platform developed in C# with SQLite as the database.  
 
-The project demonstrates object-oriented programming concepts and structured application design.
+The system allows users to:
+- Create and manage events
+- Discover and search events
+- Book and cancel participation
+- Leave reviews after attending events
+
+The system will:
+- Support user registration and authentication
+- Enable event creation and management
+- Provide a booking system with capacity control
+- Allow searching and filtering of events
+- Enable users to leave reviews
 
 ---
 
@@ -25,8 +35,8 @@ The project demonstrates object-oriented programming concepts and structured app
 - View booking history
 - Leave reviews
 
-### Organiser
-- Create events
+### Admin
+- Create and browse events
 - Edit and cancel events
 - View own events
 - View all events
@@ -36,12 +46,11 @@ The project demonstrates object-oriented programming concepts and structured app
 
 ---
 
-## Technologies
-- C#
-- .NET Console Application
-- SQLite
-- LINQ
-- Repository pattern
+## Tools & Technologies
+- Language: C# (.NET)
+- Database: SQLite
+- Version Control: GitHub 
+- IDE: Rider
 
 ---
 
@@ -99,12 +108,3 @@ See the docs/ folder:
 - Console UI is basic
 
 ---
-
-## AI Usage
-
-AI tools were used to:
-- assist with debugging and issue resolution
-- support improvements in console interaction
-- help structure and refine documentation
-
-All generated content was reviewed and adapted by the team.
